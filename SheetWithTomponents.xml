@@ -1,0 +1,135 @@
+<ROSETTASCRIPTS>
+        <SCOREFXNS>
+                <ScoreFunction name="CENTROID" weights="%%fldsgn_cen%%" symmetric="0" >
+                        <Reweight scoretype="hbond_lr_bb" weight="1.75" />
+                        <Reweight scoretype="hbond_sr_bb" weight="1.0" />
+                        <Reweight scoretype="atom_pair_constraint" weight="0.1" />
+                        <Reweight scoretype="angle_constraint" weight="1.0" />
+                        <Reweight scoretype="dihedral_constraint" weight="1.0" />
+                        <Reweight scoretype="omega" weight="1.5" />
+                        <Reweight scoretype="rama" weight="1.15" />
+                </ScoreFunction>
+		<ScoreFunction name="min_cart" weights="%%remodel_cen%%" >
+			<Reweight scoretype="hbond_sr_bb" weight="1.0" />
+			<Reweight scoretype="hbond_lr_bb" weight="1.0" />
+			<Reweight scoretype="rama" weight="1.15" />
+			<Reweight scoretype="omega" weight="1.5" />
+			<Reweight scoretype="atom_pair_constraint" weight="1.0" />
+			<Reweight scoretype="coordinate_constraint" weight="1.0" />
+			<Reweight scoretype="angle_constraint" weight="1.0" />
+			<Reweight scoretype="dihedral_constraint" weight="1.0" />
+			<Reweight scoretype="cart_bonded" weight="0.5"/>
+			<Reweight scoretype="pro_close" weight="0.0"/>
+			<!--Reweight scoretype="cen_hb" weight="5.0" /-->
+		</ScoreFunction>
+		<ScoreFunction name="talaris" weights="talaris2014.wts" >
+			<Reweight scoretype="rama" weight="1.0" />
+		</ScoreFunction>
+        </SCOREFXNS>
+	<RESIDUE_SELECTORS>
+                <SecondaryStructure name="loops" ss="L" use_dssp="0" />
+                <Not name="not_loops" selector="loops" />
+		<SecondaryStructure name="all_ss" ss="HEL" include_terminal_loops="True" use_dssp="True"/>
+		<SecondaryStructure name="strands" ss="E" include_terminal_loops="True" use_dssp="False"/>
+	</RESIDUE_SELECTORS>
+	<TASKOPERATIONS>
+		<OperateOnResidueSubset name="all_ss_design" selector="all_ss" > <RestrictToRepackingRLT/> </OperateOnResidueSubset>
+		<ConsensusLoopDesign name="design_loops_and_flanking_s1" include_adjacent_residues="True" enrichment_threshold="0.5" use_dssp="False"/>
+		<OperateOnResidueSubset name="repack_s1" selector="not_loops" > <RestrictToRepackingRLT/> </OperateOnResidueSubset>
+		<OperateOnResidueSubset name="no_pro" selector="strands" > <RestrictAbsentCanonicalAASRLT aas="ADEFGHIKLMNQRSTVWY"/> </OperateOnResidueSubset>
+	</TASKOPERATIONS>
+	<MOVERS>
+		<SwitchResidueTypeSetMover name="fa" set="fa_standard"/>
+	</MOVERS>
+	<FILTERS>
+		<StrandCurvatureByLevels name="st1_curv" StrandID="2" concavity_reference_residue="last" concavity_direction="1" bend_level="2" min_bend="0" max_bend="180" twist_level="2" min_twist="0" max_twist="180" confidence="1" />
+		<ResidueCount name="strand_res" residue_selector="strands" />
+		<ScoreType name="strand_hb" scorefxn="talaris" score_type="hbond_lr_bb" threshold="1000" confidence="0"/>
+		<TaskAwareScoreType name="rama_fil" scorefxn="talaris" score_type="rama" threshold="0.2" task_operations="all_ss_design" mode="individual" confidence="1"/>
+		<MoveBeforeFilter name="rama" mover="fa" filter="rama_fil" />
+                <Geometry name="geometry" />
+                <!--SecondaryStructure name="secstruct_filter" blueprint="%%bp%%" use_abego="True" treat_L_as_D="True" confidence="1"/-->
+		<SecondaryStructure name="secstruct_filter" blueprint="%%bp%%" use_abego="True" treat_L_as_D="True" threshold="1.0" confidence="1" compute_pose_secstruct_by_dssp="True"/>
+		<CalculatorFilter name="av_strand_hb" equation="SCO/RES" threshold="-0.55" confidence="1">
+			<VAR name="RES" filter="strand_res"/>
+			<VAR name="SCO" filter="strand_hb"/>
+   		 </CalculatorFilter>
+                <SheetTopology name="sheet_topology" use_dssp="0" />
+		<CompoundStatement name="all_filters">
+                        <AND filter_name="geometry" />
+                        <AND filter_name="secstruct_filter" />
+                        <AND filter_name="rama"/>
+                        <AND filter_name="st1_curv" />
+                        <AND filter_name="av_strand_hb"/>
+                </CompoundStatement>
+        </FILTERS>
+	<MOVERS>
+		<DumpPdb name="init" fname="init_" tag_time="True"/>
+		<DumpPdb name="after_min" fname="after_min_" tag_time="True"/>
+		<DumpPdb name="after_hyb" fname="after_hyb_" tag_time="True"/>
+		<SwitchResidueTypeSetMover name="cen" set="centroid"/>
+		<PackRotamersMover name="design_loops_s1" scorefxn="talaris" task_operations="repack_s1,no_pro,design_loops_and_flanking_s1"/>
+		<MakePolyX name="polyALA" aa="ALA" keep_pro="True" keep_gly="True" />
+		<MakePolyX name="polyVAL" aa="VAL" keep_pro="True" keep_gly="True" />
+		<AddConstraints name="curr_conf_s1" >
+			<CoordinateConstraintGenerator name="gen_my_csts" sd="1.0" bounded="true" bounded_width="1.0"
+			sidechain="false" ca_only="true" />
+		</AddConstraints>
+		<RemoveConstraints name="rm_csts" constraint_generators="gen_my_csts" />
+		<AddConstraints name="angle_csts" >
+			<FileConstraintGenerator name="sheet_curve" filename="%%cst_file%%" />
+		</AddConstraints>
+		<AddConstraints name="build_csts" >
+			<SheetConstraintGenerator name="sheet_csts" blueprint="%%bp%%"
+                        flat_bottom_constraints="False" angle_tolerance="0.3" cacb_dihedral_tolerance="0.9"
+                        bb_dihedral_tolerance="3.14" dist="4.7" dist_tolerance="1.0" weight="1.0" />
+			<FileConstraintGenerator name="sheet_curve_in" filename="%%cst_file%%" />
+		</AddConstraints>
+		<MinMover name="cart_min_mover" scorefxn="min_cart" type="lbfgs_armijo_nonmonotone" tolerance="0.00001" max_iter="10000" chi="0" bb="1" bondangle="0" bondlength="0" cartesian="1"/>
+		<!--MinMover name="cart_min_mover" scorefxn="min_cart" type="lbfgs_armijo_nonmonotone" tolerance="0.00001" max_iter="10000" chi="0" bb="1" bondangle="0" bondlength="0" cartesian="False"/-->
+		<RemoveConstraints name="rm_build_csts" constraint_generators="sheet_curve_in,sheet_csts" />
+		<RemoveConstraints name="rm_curve_csts" constraint_generators="sheet_curve" />
+		<SetSecStructEnergies name="set_ssene1" scorefxn="CENTROID" />
+		<BluePrintBDR name="bdr" blueprint="%%bp%%" use_abego_bias="True" use_sequence_bias="False" scorefxn="CENTROID" constraint_file="%%cst_file%%" />
+		<ParsedProtocol name="movers">
+                        <Add mover="rm_csts"/>
+                        <Add mover_name="bdr" />
+			<Add mover_name="polyVAL"/>
+			<Add mover="cen"/>
+			<Add mover="rm_csts"/>
+                                <Add mover="rm_build_csts" />
+                                <Add mover="rm_curve_csts"/>
+                                <Add mover="fa"/>
+                                <Add mover="design_loops_s1"/>
+                                <Add mover="cen"/>
+                                <Add mover="build_csts"/>
+                                <Add mover="cart_min_mover" />
+                                <Add mover="curr_conf_s1"/>
+                                <Add mover="cart_min_mover" />
+                                <Add mover="rm_build_csts" />
+                                <Add mover="rm_csts"/>
+                                <Add mover="curr_conf_s1"/>
+                                <Add mover="cart_min_mover" />
+                                <Add mover="rm_csts"/>
+                                <Add mover="curr_conf_s1"/>
+                                <Add mover="cart_min_mover" />
+                                <Add mover="rm_csts"/>
+                                <Add mover="curr_conf_s1"/>
+                                <Add mover="cart_min_mover" />
+                                <Add mover="rm_csts"/>
+                                <Add mover="rm_build_csts" />
+                                <Add mover="rm_curve_csts"/>
+			<Add mover="fa"/>
+                </ParsedProtocol>
+		<LoopOver name="loop_over_bdr" mover_name="movers" filter_name="all_filters" iterations="%%sheet_attempts%%" drift="False" ms_whenfail="FAIL_DO_NOT_RETRY" />
+	</MOVERS>
+	<PROTOCOLS>
+                <!--Add mover="build_bb_phase1" /-->
+		<Add mover="loop_over_bdr"/>
+		<Add mover="polyALA"/>
+		<Add filter="av_strand_hb"/>
+                <Add mover="rm_csts"/>
+                                <Add mover="rm_build_csts" />
+                                <Add mover="rm_curve_csts"/>
+	</PROTOCOLS>
+</ROSETTASCRIPTS>

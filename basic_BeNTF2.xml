@@ -1,0 +1,118 @@
+<ROSETTASCRIPTS>
+    <SCOREFXNS>
+	<ScoreFunction name="CENTROID" weights="fldsgn_cen" symmetric="0" >
+		<Reweight scoretype="hbond_lr_bb" weight="1.75" />
+                <Reweight scoretype="hbond_sr_bb" weight="1.0" />
+                <Reweight scoretype="atom_pair_constraint" weight="1.0" />
+                <Reweight scoretype="angle_constraint" weight="1.0" />
+                <Reweight scoretype="dihedral_constraint" weight="0.1" />
+                <Reweight scoretype="omega" weight="1.5" />
+                <Reweight scoretype="rama" weight="1.15" />
+	</ScoreFunction>
+	<!-- ScoreFunction name="CENTROID" weights="fldsgn_cen" symmetric="0" /-->
+	<ScoreFunction name="min_cart" weights="%%remodel_cen%%" >
+                <Reweight scoretype="hbond_sr_bb" weight="1.75" />
+                <Reweight scoretype="hbond_lr_bb" weight="1.75" />
+                <Reweight scoretype="rama" weight="1.15" />
+                <Reweight scoretype="omega" weight="1.5" />
+                <Reweight scoretype="atom_pair_constraint" weight="1.0" />
+                <Reweight scoretype="coordinate_constraint" weight="1.0" />
+                <Reweight scoretype="angle_constraint" weight="1.0" />
+                <Reweight scoretype="dihedral_constraint" weight="0.1" />
+                <!--Reweight scoretype="cart_bonded" weight="0.5"/-->
+       </ScoreFunction>
+       <ScoreFunction name="talaris" weights="talaris2014.wts" >
+             	<Reweight scoretype="rama" weight="1.0" />
+       </ScoreFunction>
+    </SCOREFXNS>
+	<RESIDUE_SELECTORS>
+                <SecondaryStructure name="loops" ss="L" use_dssp="0" overlap="1"/>
+                <Not name="not_loops" selector="loops" />
+                <SecondaryStructure name="all_ss" ss="HEL" include_terminal_loops="True" use_dssp="True"/>
+                <SecondaryStructure name="strands" ss="E" include_terminal_loops="True" use_dssp="False"/>
+		<Index name="keepfix" resnums="%%fix_min%%"/>
+		<Index name="no_pro_RS" resnums="%%no_pro%%"/>
+        </RESIDUE_SELECTORS>
+        <TASKOPERATIONS>
+                <OperateOnResidueSubset name="all_ss_design" selector="all_ss" > <RestrictToRepackingRLT/> </OperateOnResidueSubset>
+                <ConsensusLoopDesign name="design_loops_and_flanking_s1" include_adjacent_residues="True" enrichment_threshold="0.5" use_dssp="False"/>
+                <OperateOnResidueSubset name="repack_s1" selector="not_loops" > <RestrictToRepackingRLT/> </OperateOnResidueSubset>
+		<OperateOnResidueSubset name="KEEPFIXED" selector="keepfix" > <PreventRepackingRLT/> </OperateOnResidueSubset>
+		<OperateOnResidueSubset name="no_pro" selector="no_pro_RS"> <RestrictAbsentCanonicalAASRLT aas="ADEFGHIKLMNQRSTVWY"/>  </OperateOnResidueSubset> <!-- no C or P -->
+        </TASKOPERATIONS>
+        <MOVERS>
+                <SwitchResidueTypeSetMover name="fa" set="fa_standard"/>
+        </MOVERS>
+    <FILTERS>
+	<ResidueCount name="strand_res" residue_selector="strands" />
+    	<ScoreType name="strand_hb" scorefxn="talaris" score_type="hbond_lr_bb" threshold="1000" confidence="0"/>
+        <TaskAwareScoreType name="rama_fil" scorefxn="talaris" score_type="rama" threshold="0.2" task_operations="all_ss_design" mode="individual" confidence="1"/>
+        <MoveBeforeFilter name="rama" mover="fa" filter="rama_fil" />
+        <Geometry name="geometry" />
+        <!--SecondaryStructure name="secstruct_filter" blueprint="%%bp%%" use_abego="True" treat_L_as_D="True" confidence="1"/-->
+        <SecondaryStructure name="secstruct_filter" blueprint="%%bp%%" use_abego="True" treat_L_as_D="True" threshold="1.0" confidence="1" compute_pose_secstruct_by_dssp="True"/>
+        <CalculatorFilter name="av_strand_hb" equation="SCO/RES" threshold="-0.60" confidence="1">
+         	<VAR name="RES" filter="strand_res"/>
+             	<VAR name="SCO" filter="strand_hb"/>
+    	</CalculatorFilter>
+    	<SheetTopology name="sheet_topology" use_dssp="0" blueprint="%%bp%%" ignore_register_shift="True"/>
+	<HelixKink name="Hkink" bend="20" blueprint="%%bp%%"/>
+    	<HelixBendFilter name="Hbend1" threshold="155.0" blueprint="%%bp%%" HelixID="1" confidence="1" />
+	<HelixBendFilter name="Hbend2" threshold="155.0" blueprint="%%bp%%" HelixID="2" confidence="1" />
+	<CompoundStatement name="combined_filters" confidence="1">
+                <AND filter_name="geometry" />
+                <AND filter_name="secstruct_filter" />
+                <AND filter_name="rama"/>
+                <AND filter_name="av_strand_hb"/>
+                <AND filter_name="sheet_topology" />
+                <AND filter_name="Hkink" />
+                <AND filter_name="Hbend1" />
+		<AND filter_name="Hbend2" />
+        </CompoundStatement>
+    </FILTERS>
+    <MOVERS>
+	<SwitchResidueTypeSetMover name="cen" set="centroid"/>
+        <PackRotamersMover name="design_loops_s1" scorefxn="talaris" task_operations="repack_s1,no_pro,design_loops_and_flanking_s1"/>
+        <MakePolyX name="polyALA" aa="ALA" />
+        <AddConstraints name="curr_conf_s1" >
+        	<CoordinateConstraintGenerator name="gen_my_csts" sd="1.0" bounded="true" bounded_width="1.0"
+           	sidechain="false" ca_only="true"/>
+        </AddConstraints>
+        <RemoveConstraints name="rm_csts" constraint_generators="gen_my_csts" />
+        <AddConstraints name="build_csts" >
+		<FileConstraintGenerator name="cst" filename="%%all_cst_file%%" />
+    	</AddConstraints>
+        <!--TaskAwareMinMover name="cart_min_mover" scorefxn="min_cart" type="lbfgs_armijo_nonmonotone" tolerance="0.00001" max_iter="10000" chi="0" bb="1" bondangle="0" bondlength="0" cartesian="1" task_operations="KEEPFIXED" /-->
+	<TaskAwareMinMover name="cart_min_mover" scorefxn="min_cart" type="lbfgs_armijo_nonmonotone" tolerance="0.00001" max_iter="10000" chi="0" bb="1" bondangle="0" bondlength="0" cartesian="False" task_operations="KEEPFIXED" />
+        <RemoveConstraints name="rm_build_csts" constraint_generators="cst" />
+	<SheetCstGenerator name="sheet_new1" blueprint="%%bp%%" />
+        <SetSecStructEnergies name="set_ssene1" scorefxn="CENTROID" />
+	<ClearConstraintsMover name="RM_ALL_CST" />
+	<!--BluePrintBDR name="bdr1" scorefxn="SFXN1" constraint_generators="sheet_new1" blueprint="%%bp%%" /-->
+	<BluePrintBDR name="bdr1" scorefxn="CENTROID" use_abego_bias="True" blueprint="%%bp%%" constraint_file="%%all_cst_file%%" />
+	<ParsedProtocol name="combined_movers" >
+		<Add mover="bdr1"/>
+        	<Add mover="fa"/>
+        	<Add mover="RM_ALL_CST"/>
+        	<Add mover="design_loops_s1"/>
+        	<Add mover="cen"/>
+        	<Add mover="build_csts"/>
+        	<Add mover="cart_min_mover" />
+        	<Add mover="rm_build_csts" />
+		<!--
+        	<Add mover="curr_conf_s1"/>
+        	<Add mover="cart_min_mover" />
+		-->
+        	<Add mover="fa"/>
+        	<Add mover="polyALA"/>
+	</ParsedProtocol>
+	<LoopOver name="finish_BeNTF2" mover_name="combined_movers" filter_name="combined_filters"
+                iterations="%%BasicBeNTF2_attempts%%" drift="False" ms_whenfail="FAIL_DO_NOT_RETRY" />
+    </MOVERS>
+    <APPLY_TO_POSE>
+    </APPLY_TO_POSE>
+    <PROTOCOLS>
+	<Add mover="finish_BeNTF2"/>
+    </PROTOCOLS>
+    <OUTPUT />
+</ROSETTASCRIPTS>
