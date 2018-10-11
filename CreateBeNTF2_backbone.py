@@ -1,7 +1,7 @@
 #!/software/miniconda3/envs/pyrosetta3/bin/python3
 
 from BeNTF2_Koga_toolkit import *
-from decision_tree_functions_no_loop_info import *
+#from decision_tree_functions_no_loop_info import *
 #import matplotlib.pyplot as plt
 #import matplotlib.mlab as mlab
 #import seaborn as sns
@@ -12,6 +12,7 @@ import argparse
 import random, string
 import pickle
 import numpy as np
+import random
 import os
 import copy
 from random import shuffle
@@ -54,7 +55,10 @@ def MakeMoverFromXML(xmlfile,replaces,pose):
 def CreateSheet(POSE,n_trials_sheet=25,sheet_type=None):
 	# Sheet type choise has not been implemented yet
 	all_sheet_dicts = CreateAllPossibleSheetDicts()
-	sheet_type,sheet_dict = random.choice(all_sheet_dicts)
+	if sheet_type:
+		sheet_type,sheet_dict = [ (sheet_type,sheet_dict[1]) for sheet_dict in all_sheet_dicts if sheet_dict[0] == sheet_type ][0]
+	else:
+		sheet_type,sheet_dict = random.choice(all_sheet_dicts)
 	init_pose_len = POSE.size()
 	print('Attempting to create sheet')
 	print('Sheet type chosen: %04d'%sheet_type)
@@ -223,68 +227,6 @@ def AddCtermHelix(BasicBeNTF2_obj,BasicNTF2_pose=None,trials=25):
 			os.remove(CH_BeNTF2_bpCST_name)
 			return True
 	
-def GetTop3Ring(features_v,X):
-	important_f = [0, 1, 2, 3, 5]
-	sc_X_test = SVC_scaler.transform(features_v)
-	proba_vec = SVC_model.predict_proba(sc_X_test[:,important_f])[0]
-	learned_types = np.array([0.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0,13.0,14.0,16.0,18.0,20.0,21.0,22.0,24.0,25.0,26.0,27.0,28.0,29.0,30.0,31.0,32.0,33.0,34.0] )
-	comb = [ i for i in zip(proba_vec,learned_types)]
-	#print(comb)
-	sorted_by_proba = sorted(comb, key=lambda tup: tup[0])
-	types_only = [i[1] for i in sorted_by_proba]
-	return list(reversed(types_only[-X:]))
-
-def GetPossibleRings_tree(features_v,X):
-	# X is how many rings recomendations I want
-	Connection_types = ['ClassicDirect','ClassicBulge','ABG','BBB','BABAB','BulgeAndB']
-	allowed_conn_dict = { con:False for con in Connection_types }
-	if good_for_ClassicBulge(features_v): allowed_conn_dict['ClassicBulge']=True
-	if good_for_ClassicDirect(features_v): allowed_conn_dict['ClassicDirect']=True
-	if good_for_ABG(features_v): allowed_conn_dict['ABG']=True
-	if good_for_BABAB(features_v): allowed_conn_dict['BABAB']=True
-	if good_for_BulgeAndB(features_v): allowed_conn_dict['BulgeAndB']=True
-	if good_for_BBB(features_v): allowed_conn_dict['BBB']=True
-	tuples = []
-	if not any( [ allowed_conn_dict[key] for key in allowed_conn_dict.keys() ] ): raise "Impossible to close"
-	for key in Connection_types:
-		if allowed_conn_dict[key]:
-			new_feature_dict_for_hx = { key:features_v[key] for key in features_v.keys()}
-			for con in Connection_types:
-				new_feature_dict_for_hx[ 'is_'+con ] = False
-			new_feature_dict_for_hx[ 'is_'+key ] = True
-			if good_for_H3_len_10(new_feature_dict_for_hx): tuples.append( (10,key) )
-			if good_for_H3_len_11(new_feature_dict_for_hx): tuples.append( (11,key) )
-			if good_for_H3_len_12(new_feature_dict_for_hx): tuples.append( (12,key) )
-			if good_for_H3_len_13(new_feature_dict_for_hx): tuples.append( (13,key) )
-			if good_for_H3_len_14(new_feature_dict_for_hx): tuples.append( (14,key) )
-			if good_for_H3_len_15(new_feature_dict_for_hx): tuples.append( (15,key) )
-	if len(tuples) == 0: raise "Impossible to close"
-	return tuples
-		
-	# Return helix and loop combinations (a list of tuples)
-
-def GetAllowedHelices(features_v):
-	Hlen_list = []
-	if good_for_H3_len_10(features_v): Hlen_list.append( 10 )
-	if good_for_H3_len_11(features_v): Hlen_list.append( 11 )
-	if good_for_H3_len_12(features_v): Hlen_list.append( 12 )
-	if good_for_H3_len_13(features_v): Hlen_list.append( 13 )
-	if good_for_H3_len_14(features_v): Hlen_list.append( 14 )
-	if good_for_H3_len_15(features_v): Hlen_list.append( 15 )
-	return Hlen_list
-
-def GetBestRing(features_v):
-	important_f = [0, 1, 2, 3, 5]
-	sc_X_test = SVC_scaler.transform(features_v)
-	#proba_vec = SVC_model.predict_proba(sc_X_test[:,important_f])[0]
-	pred_type = SVC_model.predict(sc_X_test[:,important_f])
-	#learned_types = np.array([0.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0,13.0,14.0,16.0,18.0,20.0,21.0,22.0,24.0,25.0,26.0,27.0,28.0,29.0,30.0,31.0,32.0,33.0,34.0] )
-	#comb = [ i for i in zip(proba_vec,learned_types)]
-	#print(comb)
-	#sorted_by_proba = sorted(comb, key=lambda tup: tup[0])
-	#types_only = [i[1] for i in sorted_by_proba]
-	return pred_type
-
 def add_SS_labels(POSE,basic_NTF2Obj):
 	'''
 	info = POSE.pdb_info()
@@ -392,8 +334,8 @@ db = args.database
 general_flags = ['-rama_map %s/Rama_XPG_3level.txt'%db,\
 		'-picking_old_max_score 1',\
 		'-restore_talaris_behavior',
-		'-out:file:pdb_comments' ,\
-		'-mute all']
+		'-out:file:pdb_comments'] #,\
+		#'-mute all']
 
 prefix = ''
 
@@ -418,6 +360,8 @@ inv_ConnectionClasses_dict = {v: k for k, v in ConnectionClasses_dict.items()}
 #SVC_scaler = pickle.load(scaler_handle)
 #test_svm()
 
+sheet_type = random.choice( [i for i in range(1,69)] )
+
 for trial in range(args.nstruct):
 	
 	if not args.prefix:
@@ -429,7 +373,7 @@ for trial in range(args.nstruct):
 	
 	POSE = pose_from_file( filename='%s/input.pdb'%db )
 	init_pose_len = POSE.size()
-	sheet_obj,success = CreateSheet(POSE,n_trials_sheet=25)
+	sheet_obj,success = CreateSheet(POSE,n_trials_sheet=25,sheet_type=sheet_type)
 	if not success:
 		continue
 	print('Yes, now filtering for outward-facing long arm')
@@ -478,10 +422,8 @@ for trial in range(args.nstruct):
 	if ExtendableRingHP(sheet_obj):
 		HP_len = [ 4, 6 ]
 		random.shuffle( HP_len )
-	#loop_helix_tuples = GetPossibleRings_tree(features_v,3)
 	allowed_loops = ParseConnections(POSE, sheet_obj)
 	loop_helix_tuples = []
-	#allowed_helices = GetAllowedHelices(features_v)
 	allowed_helices = [ 10,11,14,15]
 	if len(allowed_helices) == 0:
 		core.pose.add_comment(POSE,"IMPOSSIBLE",json.dumps(features_v))
