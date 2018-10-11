@@ -1,6 +1,6 @@
 #!/software/miniconda3/envs/pyrosetta3/bin/python3
 
-from BeNTF2_Koga_toolkit import *
+from BeNTF2_toolkit import *
 import json
 import argparse
 import copy
@@ -126,7 +126,7 @@ def CreateSheetPoseFromObj(sheet_obj,POSE,n_trials_sheet=25,sheet_type=None):
         for key in tomponents_dict.keys():
                 replaces.append("%s=%s"%(key,tomponents_dict[key]))
         print('Creating sheet mover')
-        mover_from_XML = MakeMoverFromXML('%s/SheetWithTomponents.xml'%db,replaces,POSE)
+        mover_from_XML = MakeMoverFromXML('%s/CreateSheet.xml'%db,replaces,POSE)
         print('Applying')
         try:mover_from_XML.apply(POSE)
         except RuntimeError:

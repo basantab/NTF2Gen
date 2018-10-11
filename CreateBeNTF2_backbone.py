@@ -1,11 +1,6 @@
 #!/software/miniconda3/envs/pyrosetta3/bin/python3
 
-from BeNTF2_Koga_toolkit import *
-#from decision_tree_functions_no_loop_info import *
-#import matplotlib.pyplot as plt
-#import matplotlib.mlab as mlab
-#import seaborn as sns
-#import pandas as pnd
+from BeNTF2_toolkit import *
 import json
 import sys
 import argparse
@@ -16,7 +11,6 @@ import random
 import os
 import copy
 from random import shuffle
-#from sklearn import svm
 
 ########## Option system: ###########
 argparser = argparse.ArgumentParser(description='Create a BeNTF2 backbone.')
@@ -70,8 +64,6 @@ def CreateSheet(POSE,n_trials_sheet=25,sheet_type=None):
 	#	sheet_dict['SecBulgeEE'] = False
 	sheet = NTF2_sheet(**sheet_dict)
 	sheet.write_cstfile(shee_angle_fname)
-	#sheet.write_Tomponents_flags(tomponents_fname)
-	#sheet.dump_sheet_data_human_readable()
 	sspairs_str = "SSPAIR "+";".join(sheet.pairings)
 	bp = Blueprint( data=[ [ x for x in i ] for i in sheet.blueprint.bp_data ] )
 	bp.remodel_all()
@@ -91,7 +83,7 @@ def CreateSheet(POSE,n_trials_sheet=25,sheet_type=None):
 	for key in tomponents_dict.keys():
 		replaces.append("%s=%s"%(key,tomponents_dict[key]))
 	print('Creating sheet mover')
-	mover_from_XML = MakeMoverFromXML('%s/SheetWithTomponents.xml'%db,replaces,POSE)
+	mover_from_XML = MakeMoverFromXML('%s/CreateSheet.xml'%db,replaces,POSE)
 	print('Applying')
 	try:mover_from_XML.apply(POSE)
 	except RuntimeError:
