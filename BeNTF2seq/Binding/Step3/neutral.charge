@@ -1,0 +1,5 @@
+DESIRED_CHARGE 0 #Desired net charge is 0.
+PENALTIES_CHARGE_RANGE -1 1 #Penalties are listed in the observed net charge range of -1 to 1.
+PENALTIES 10 0 10 #The penalties are 3 for an observed charge of -1, 0 for an observed charge of 0, and 3 for an observed charge of 1.
+BEFORE_FUNCTION QUADRATIC #
+AFTER_FUNCTION QUADRATIC #Ramp quadratically for observed net charges of -1, 1 or greater.

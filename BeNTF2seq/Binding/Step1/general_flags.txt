@@ -1,0 +1,10 @@
+-beta
+-parser:script_vars hard_fa=beta_genpot
+-parser:script_vars charge=../design_files_penalty/negative.charge
+-parser:script_vars aa_comp=../design_files_penalty/general2.comp
+-parser:script_vars sspredexec=/gscratch/baker/basantab/utils/psipred4.01/runpsipred_csbuild_single
+-parser:script_vars pocket_charge=../design_files_penalty/neutral.charge
+-parser:script_vars pocketcomp=../design_files_penalty/pocket.comp
+-parser:script_vars core_comp=../design_files_penalty/core.comp
+-parser:script_vars surface_comp=../design_files_penalty/surface.comp
+-out:file:pdb_comments

@@ -1,0 +1,463 @@
+<ROSETTASCRIPTS>
+  <SCOREFXNS>
+    <ScoreFunction name="beta_soft" weights="beta_nov16_soft">
+      <Reweight scoretype="atom_pair_constraint" weight="1.0"/>
+      <Reweight scoretype="coordinate_constraint" weight="1.0"/>
+      <Reweight scoretype="angle_constraint" weight="1.0"/>
+      <Reweight scoretype="dihedral_constraint" weight="1.0"/>
+      <Reweight scoretype="aa_composition" weight="1.0" />
+      <Reweight scoretype="netcharge" weight="1.0" />
+      <Set netcharge_setup_file="%%charge%%" />
+      <Set aa_composition_setup_file="%%aa_comp%%" />
+    </ScoreFunction>
+    <!-- Beta score function with constraints and cartesian -->
+    <ScoreFunction name="beta" weights="%%hard_fa%%">
+      <Reweight scoretype="atom_pair_constraint" weight="1.0"/>
+      <Reweight scoretype="coordinate_constraint" weight="1.0"/>
+      <Reweight scoretype="angle_constraint" weight="1.0"/>
+      <Reweight scoretype="dihedral_constraint" weight="1.0"/>
+    </ScoreFunction>
+    <ScoreFunction name="beta_aa_comp_hbnet" weights="%%hard_fa%%">
+      <Reweight scoretype="atom_pair_constraint" weight="1.0"/>
+      <Reweight scoretype="coordinate_constraint" weight="1.0"/>
+      <Reweight scoretype="angle_constraint" weight="1.0"/>
+      <Reweight scoretype="aa_composition" weight="1.0" />
+      <Reweight scoretype="netcharge" weight="1.0" />
+      <Set netcharge_setup_file="%%charge%%" />
+      <Reweight scoretype="hbnet" weight="0.0"/>
+      <Set hbnet_bonus_function_ramping="squareroot" />
+      <Set aa_composition_setup_file="%%aa_comp%%" />
+    </ScoreFunction>
+    <ScoreFunction name="beta_aa_comp" weights="%%hard_fa%%">
+      <Reweight scoretype="atom_pair_constraint" weight="1.0"/>
+      <Reweight scoretype="coordinate_constraint" weight="1.0"/>
+      <Reweight scoretype="angle_constraint" weight="1.0"/>
+      <Reweight scoretype="aa_composition" weight="1.0" />
+      <Set aa_composition_setup_file="%%aa_comp%%" />
+    </ScoreFunction>
+    <ScoreFunction name="beta_aa_comp_cart" weights="%%hard_fa%%">
+      <Reweight scoretype="cart_bonded" weight="0.8"/>
+      <Reweight scoretype="pro_close" weight="0.0"/>
+      <Reweight scoretype="atom_pair_constraint" weight="1.0"/>
+      <Reweight scoretype="coordinate_constraint" weight="1.0"/>
+      <Reweight scoretype="angle_constraint" weight="1.0"/>
+      <Reweight scoretype="netcharge" weight="1.0" />
+      <Reweight scoretype="aa_composition" weight="1.0" />
+      <Set netcharge_setup_file="%%charge%%" />
+      <Set aa_composition_setup_file="%%aa_comp%%" />
+    </ScoreFunction>
+    <ScoreFunction name="beta_aa_comp_cart_HBNet" weights="%%hard_fa%%">
+      <Reweight scoretype="cart_bonded" weight="0.5"/>
+      <Reweight scoretype="pro_close" weight="0.0"/>
+      <Reweight scoretype="atom_pair_constraint" weight="1.0"/>
+      <Reweight scoretype="coordinate_constraint" weight="1.0"/>
+      <Reweight scoretype="angle_constraint" weight="1.0"/>
+      <Reweight scoretype="netcharge" weight="1.0" />
+      <Reweight scoretype="aa_composition" weight="1.0" />
+      <Set aa_composition_setup_file="%%aa_comp%%" />
+    </ScoreFunction>
+    <ScoreFunction name="beta_cart" weights="%%hard_fa%%">
+      <Reweight scoretype="atom_pair_constraint" weight="1.0"/>
+      <Reweight scoretype="coordinate_constraint" weight="1.0"/>
+      <Reweight scoretype="angle_constraint" weight="1.0"/>
+      <Reweight scoretype="dihedral_constraint" weight="1.0"/>
+      <Reweight scoretype="cart_bonded" weight="0.8"/>
+      <Reweight scoretype="pro_close" weight="0.0"/>
+    </ScoreFunction>
+  </SCOREFXNS>
+<RESIDUE_SELECTORS>
+<!-- RSs for layer comp -->
+  <Layer name="surface" select_core="False" select_boundary="False" select_surface="True" use_sidechain_neighbors="True" />
+        <Layer name="boundary" select_core="False" select_boundary="True" select_surface="False" use_sidechain_neighbors="True" />
+        <Layer name="core" select_core="True" select_boundary="False" select_surface="False" use_sidechain_neighbors="True" />
+        <SecondaryStructure name="Helix" overlap="0" pose_secstruct="%%SS%%" ss="H" />
+        <SecondaryStructure name="Strand" overlap="0" pose_secstruct="%%SS%%" ss="E" />
+        <And name="surface_Helix" selectors="surface,Helix"/>
+        <And name="boundary_Helix" selectors="boundary,Helix"/>
+        <And name="core_Helix" selectors="core,Helix"/>
+        <And name="surface_Strand" selectors="surface,Strand"/>
+        <And name="boundary_Strand" selectors="boundary,Strand"/>
+        <And name="core_Strand" selectors="core,Strand"/>
+</RESIDUE_SELECTORS>
+  <RESIDUE_SELECTORS>
+    <ResiduePDBInfoHasLabel name="pocket" property="Pckt"/>
+    <Chain name="chain_b" chains="B"/>
+    <Not name="not_chain_b" selector="chain_b"/>
+  </RESIDUE_SELECTORS>
+  <RESIDUE_SELECTORS>
+    <ResiduePDBInfoHasLabel name="lock_trp" property="trp"/>
+    <ResiduePDBInfoHasLabel name="lock_lys" property="lys"/>
+    <ResiduePDBInfoHasLabel name="lock_small" property="small"/>
+    <ResiduePDBInfoHasLabel name="HBNet" property="HBNet"/>
+    <Not name="not_HBNet" selector="HBNet"/>
+    <Or name="trp_lock" selectors="lock_trp,lock_lys"/>
+    <Not name="not_trp_lock" selector="trp_lock"/>
+  </RESIDUE_SELECTORS>
+  <TASKOPERATIONS>
+    <ReadResfile name="resfile" filename="%%resfile%%"/>
+    <OperateOnResidueSubset name="lock_trp_TO" selector="lock_trp" > <RestrictAbsentCanonicalAASRLT aas="W"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="lock_lys_TO" selector="lock_lys" > <RestrictAbsentCanonicalAASRLT aas="K"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="lock_small_TO" selector="lock_small" > <RestrictAbsentCanonicalAASRLT aas="AILMV"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="not_trp_lock" selector="not_trp_lock" > <PreventRepackingRLT/> </OperateOnResidueSubset>
+  </TASKOPERATIONS>
+  <RESIDUE_SELECTORS>
+    <SecondaryStructure name="helices" ss="H" pose_secstruct="%%SS%%" />
+    <SecondaryStructure name="not_loops" ss="EH" pose_secstruct="%%SS%%" />
+    <SecondaryStructure name="loops" ss="L" pose_secstruct="%%SS%%" />
+    <SecondaryStructure name="strands" ss="E" pose_secstruct="%%SS%%" />
+    <SecondaryStructure name="all" ss="ELH" pose_secstruct="%%SS%%" />
+    <Layer name="init_core_SCN" select_core="True" use_sidechain_neighbors="True" surface_cutoff="1.0" /> <!--Default: core_cutoff=(5.2 &Real), surface_cutoff=(2.0 &Real)  -->
+    <Layer name="init_boundary_SCN" select_boundary="True" use_sidechain_neighbors="True" surface_cutoff="1.0" />
+    <Layer name="surface_SCN" select_surface="True" use_sidechain_neighbors="True" surface_cutoff="1.0" />
+    <Layer name="init_core_SASA" select_core="True" use_sidechain_neighbors="False" core_cutoff="20.0" surface_cutoff="60.0" />
+    <Layer name="init_boundary_SASA" select_boundary="True" use_sidechain_neighbors="False" core_cutoff="20.0" surface_cutoff="60.0"/>
+    <Layer name="surface_SASA" select_surface="True" use_sidechain_neighbors="False" core_cutoff="20.0" surface_cutoff="60.0"/>
+    <ResiduePDBInfoHasLabel name="helix1" property="H1pos"/>
+    <Not name="not_helix1" selector="helix1"/>
+    <ResiduePDBInfoHasLabel name="helix4" property="H4pos"/>
+    <ResiduePDBInfoHasLabel name="helix3" property="H3"/>
+    <Not name="not_helix3" selector="helix3"/>
+    <ResiduePDBInfoHasLabel name="long_hairpin" property="longHPpos"/>
+    <ResiduePDBInfoHasLabel name="gly_resc_gly" property="GRG"/>
+    <ResiduePDBInfoHasLabel name="gly_resc_phe" property="GRF"/>
+    <ResiduePDBInfoHasLabel name="gly_resc_gly_sec" property="GRG_sec"/>
+    <ResiduePDBInfoHasLabel name="gly_resc_phe_sec" property="GRF_sec"/>
+    <ResiduePDBInfoHasLabel name="bulge_A" property="bulge_A"/>
+    <ResiduePDBInfoHasLabel name="H1c" property="H1c"/>
+    <ResiduePDBInfoHasLabel name="L2_1" property="L2_1"/>
+    <ResiduePDBInfoHasLabel name="L2_2" property="L2_2"/>
+    <ResiduePDBInfoHasLabel name="L3_2" property="L3_2"/>
+    <ResiduePDBInfoHasLabel name="L3_3" property="L3_3"/>
+    <Or name="specifics" selectors="bulge_A,H1c,L2_1,L2_2,L3_2,L3_3,lock_trp,lock_lys,lock_small"/>
+    <Not name="not_specifics" selector="specifics" /> 
+    <Or name="inward" selectors="long_hairpin,pocket"/>
+    <Not name="not_inward" selector="inward" />
+    <Or name="gly_resc" selectors="gly_resc_gly,gly_resc_phe,gly_resc_gly_sec,gly_resc_phe_sec"/>
+    <Not name="not_gly_resc" selector="gly_resc" />
+    <And name="semi_surface_SCN" selectors="not_inward,surface_SCN,not_gly_resc,not_specifics"/>
+    <And name="core_SCN" selectors="not_inward,init_core_SCN,not_gly_resc,not_specifics"/>
+    <And name="boundary_SCN" selectors="not_inward,init_boundary_SCN,not_gly_resc,not_specifics"/>
+    <And name="semi_surface_SASA" selectors="not_inward,surface_SASA,not_gly_resc"/>
+    <And name="core_SASA" selectors="init_core_SASA,not_gly_resc,not_inward"/>
+    <And name="boundary_SASA" selectors="init_boundary_SASA,not_gly_resc"/>
+    <And name="STRANDS" selectors="strands,not_gly_resc" />
+    <!-- MC RSs -->
+    <RandomResidue name="select_random" selector="pocket" num_residues="1" />
+    <StoredResidueSubset name="random_res" subset_name="stored_random" />
+    <Not name="not_random_res" selector="random_res"/>
+    <InterfaceByVector name="interface_w_random_res1" cb_dist_cut="11.0" nearby_atom_cut="5.5" vector_angle_cut="75.0" vector_dist_cut="9.0"
+     grp1_selector="random_res" grp2_selector="not_random_res"/>
+    <InterfaceByVector name="interface_w_random_res2" cb_dist_cut="11.0" nearby_atom_cut="5.5" vector_angle_cut="75.0" vector_dist_cut="9.0"
+     grp1_selector="not_random_res" grp2_selector="random_res"/>
+    <Or name="interface_w_random_res" selectors="interface_w_random_res1,interface_w_random_res2" />
+    <And name="repack_around_random_res_RS" selectors="interface_w_random_res,not_random_res"/>
+    <Or name="working_set" selectors="random_res,interface_w_random_res"/>
+    <Not name="dont_touch_pt_mut_RS" selector="working_set"/>
+    <!--        -->
+    <!-- HBnet RS -->
+    <And name="HBNet_RS" selectors="not_gly_resc,pocket,not_chain_b"/>
+    <Not name="HBNet_RS_neg" selector="HBNet_RS"/>
+    <And name="not_HBNet_RS" selectors="HBNet_RS_neg,not_chain_b" />
+    <ResiduePDBInfoHasLabel name="keep_HBNet_RS" property="HBNet"/>
+    <!--          -->
+  </RESIDUE_SELECTORS>
+   <RESIDUE_SELECTORS>
+    <ResiduePDBInfoHasLabel name="pre_tight_PRO" property="pre_tight_PRO"/>
+    <ResiduePDBInfoHasLabel name="tight_PRO" property="tight_PRO"/>
+    <ResiduePDBInfoHasLabel name="post_tight_PRO" property="post_tight_PRO"/>
+    <Or name="tight_PRO_all" selectors="pre_tight_PRO,tight_PRO,post_tight_PRO"/>
+    <Not name="not_tight_PRO_all" selector="tight_PRO_all"/>
+  </RESIDUE_SELECTORS>
+  <!-- Tight proline task operations -->
+  <TASKOPERATIONS>
+    <OperateOnResidueSubset name="pre_tight_PRO_TO" selector="pre_tight_PRO" > <RestrictAbsentCanonicalAASRLT aas="AEFGHIKLMPQRSTVWY"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="tight_PRO_TO" selector="tight_PRO" > <RestrictAbsentCanonicalAASRLT aas="P"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="post_tight_PRO_TO" selector="post_tight_PRO" > <RestrictAbsentCanonicalAASRLT aas="AFGHIKLMPRSTVWY"/> </OperateOnResidueSubset>
+  </TASKOPERATIONS>
+  <TASKOPERATIONS>
+    <!-- HBnet TOs -->
+    <OperateOnResidueSubset name="HBNet_TO" selector="HBNet_RS"> <RestrictAbsentCanonicalAASRLT aas="DEHNQSTWY"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="keep_HBNet_TO" selector="keep_HBNet_RS"> <RestrictToRepackingRLT/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="not_HBNet_TO" selector="not_HBNet_RS"> <PreventRepackingRLT/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="repack_HCY" selector="chain_b" > <RestrictToRepackingRLT/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="retrieve_prev_HBNet_TO" selector="HBNet" > <RestrictAbsentCanonicalAASRLT aas="ADEFGHIKLMNPQRSTVWY"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="not_retrieve_prev_HBNet_TO" selector="not_HBNet" > <PreventRepackingRLT/> </OperateOnResidueSubset>
+    <!--          -->
+    <!-- MC TOs -->
+    <OperateOnResidueSubset name="pt_mut" selector="random_res" > <RestrictAbsentCanonicalAASRLT aas="ADEFGHIKLMNPQRSTVWY"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="around_pt_mut" selector="repack_around_random_res_RS" > <RestrictToRepackingRLT/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="fix" selector="dont_touch_pt_mut_RS" > <PreventRepackingRLT/> </OperateOnResidueSubset>
+    <!--        -->
+    <LimitAromaChi2 name="LimitAromaChi2" include_trp="False" />
+    <IncludeCurrent name="ic" />
+    <DsspDesign name="SS" pose_secstruct="%%SS%%">
+      <Helix aa="ADEFHIKLMNQRSTVWY"/>
+      <Strand aa="ADEFHIKLMNQRSTVWYPG"/>
+      <Loop aa="ADEFHIKLMNQRSTVWYPG"/>
+      <HelixStart aa="ADEFHIKLMNQRSTVWYP"/>
+      <HelixCapping aa="ADEFHIKLMNQRSTVWYPG" />
+      <Nterm aa="ADEGHIKLNPQRSTV" />
+      <Cterm aa="ADEGHIKLNPQRSTV" />
+    </DsspDesign>
+    <OperateOnResidueSubset name="gly_resc_gly_to" selector="gly_resc_gly" > <RestrictAbsentCanonicalAASRLT aas="G"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="gly_resc_phe_to" selector="gly_resc_phe" > <RestrictAbsentCanonicalAASRLT aas="F"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="gly_resc_gly_to_sec" selector="gly_resc_gly_sec" > <RestrictAbsentCanonicalAASRLT aas="G"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="gly_resc_phe_to_sec" selector="gly_resc_phe_sec" > <RestrictAbsentCanonicalAASRLT aas="F"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="not_gly_resc" selector="not_gly_resc" > <PreventRepackingRLT/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="bulge_A_TO" selector="bulge_A" > <RestrictAbsentCanonicalAASRLT aas="DEHKNQRST"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="H1c_TO" selector="H1c" > <RestrictAbsentCanonicalAASRLT aas="T"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="L2_1_TO" selector="L2_1" > <RestrictAbsentCanonicalAASRLT aas="G"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="L2_2_TO" selector="L2_2" > <RestrictAbsentCanonicalAASRLT aas="DN"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="L3_2_TO" selector="L3_2" > <RestrictAbsentCanonicalAASRLT aas="D"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="L3_3_TO" selector="L3_3" > <RestrictAbsentCanonicalAASRLT aas="P"/> </OperateOnResidueSubset> 
+    <OperateOnResidueSubset name="strands_to" selector="STRANDS" > <RestrictAbsentCanonicalAASRLT aas="ADEFHIKLMNQRSTVWYP"/> </OperateOnResidueSubset>
+    <ExtraRotamersGeneric name="ex" ex1="True" ex2="True" ex1_sample_level="1" ex2_sample_level="1" extrachi_cutoff="18"/>
+    <ConsensusLoopDesign name="consensus_loop" include_adjacent_residues="True" enrichment_threshold="0.43" secstruct="%%SS%%" />
+    <OperateOnResidueSubset name="design_core" selector="core_SCN" > <RestrictAbsentCanonicalAASRLT aas="AFILMVPG"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="repack_core" selector="core_SCN" > <RestrictToRepackingRLT/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="design_boundary" selector="boundary_SCN" > <RestrictAbsentCanonicalAASRLT aas="FILMVWYDEHNQKRMPG"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="design_inward" selector="inward" > <RestrictAbsentCanonicalAASRLT aas="ADEFGHIKLMNPQRSTVWY"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="design_surface" selector="semi_surface_SCN" > <RestrictAbsentCanonicalAASRLT aas="EDHKRQNSTPG"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="repack_surface" selector="semi_surface_SCN" > <RestrictToRepackingRLT/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="repack_not_inward" selector="not_inward" > <RestrictToRepackingRLT/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="design_core_SASA" selector="core_SASA" > <RestrictAbsentCanonicalAASRLT aas="AFILMVPG"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="design_boundary_SASA" selector="boundary_SASA" > <RestrictAbsentCanonicalAASRLT aas="FILMVWYDEHNQKRMPG"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="design_surface_SASA" selector="semi_surface_SASA" > <RestrictAbsentCanonicalAASRLT aas="EDHKRQNSTPG"/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="repack_H1" selector="helix1" > <RestrictToRepackingRLT/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="not_repack_H1" selector="not_helix1" > <PreventRepackingRLT/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="repack_H3" selector="helix3" > <RestrictToRepackingRLT/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="not_repack_H3" selector="not_helix3" > <PreventRepackingRLT/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="repack_all" selector="all" > <RestrictToRepackingRLT/> </OperateOnResidueSubset>
+    <OperateOnResidueSubset name="fix_all" selector="all" > <PreventRepackingRLT/> </OperateOnResidueSubset>
+  </TASKOPERATIONS>
+  <FILTERS>
+    <SecondaryStructure name="secstruct_filter" blueprint="%%bp%%" use_abego="False" treat_L_as_D="True" threshold="1.0" confidence="1" compute_pose_secstruct_by_dssp="True"/>
+    <SheetTopology name="sheet_topo" ignore_register_shift="True" use_dssp="True" blueprint="%%bp%%" confidence="1.0" />
+    <DSasa name="dsasa" lower_threshold="0.0" upper_threshold="1.0" confidence="0.0"/>
+
+    <SimpleHbondsToAtomFilter name="hb_O2" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O2" res_num="%%lig_pos%%" scorefxn="beta" confidence="1.0"/>
+    <SimpleHbondsToAtomFilter name="hb_O3" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O3" res_num="%%lig_pos%%" scorefxn="beta" confidence="1.0"/>
+    <SimpleHbondsToAtomFilter name="hb_O4" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O4" res_num="%%lig_pos%%" scorefxn="beta" confidence="1.0"/>
+    <SimpleHbondsToAtomFilter name="hb_O5" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O5" res_num="%%lig_pos%%" scorefxn="beta" confidence="1.0"/>
+
+    <ShapeComplementarity name="SC" min_sc="0.0" jump="1" residue_selector1="chain_b" residue_selector2="not_chain_b" confidence="0.0"/>
+    <LigInterfaceEnergy name="IFE" scorefxn="beta" energy_cutoff="0" jump_number="1" confidence="0.0" />
+    <ResidueCount name="non_ala_hyphob_percent" confidence="0.0" residue_types="PHE,ILE,LEU,MET,VAL,TRP,TYR" count_as_percentage="True"/>
+    <ResidueCount name="non_ala_hyphob_percent_H1" residue_selector="helix1" confidence="0.0" residue_types="PHE,ILE,LEU,MET,VAL,TRP,TYR" count_as_percentage="True" />
+    <ResidueCount name="non_ala_hyphob_percent_H3" residue_selector="helix3" confidence="0.0" residue_types="PHE,ILE,LEU,MET,VAL,TRP,TYR" count_as_percentage="True" />
+    <ResidueCount name="strand_res" residue_selector="strands" />
+    <ScoreType name="strand_hb" scorefxn="beta" score_type="hbond_lr_bb" threshold="1000" confidence="0"/>
+    <CalculatorFilter name="av_strand_hb" equation="SCO/RES" threshold="-0.55" confidence="0">
+                        <VAR name="RES" filter="strand_res"/>
+                        <VAR name="SCO" filter="strand_hb"/>
+                 </CalculatorFilter>
+    <SSPrediction name="sspred" confidence="0" cmd="%%sspredexec%%" use_probability="True" mismatch_probability="True" use_svm="0" threshold="0.25" secstruct="%%SS%%"/>
+    <Geometry name="geom" count_bad_residues="true" confidence="1"/>
+    <SSShapeComplementarity name="hx_sc" helices="1" loops="0" confidence="0" min_sc="0.70" verbose="0" secstruct="%%SS%%"/>
+    <TaskAwareScoreType name="rama_res" scorefxn="beta" score_type="rama_prepro" mode="individual" confidence="1" threshold="2.0" />
+   <ScoreType name="score" scorefxn="beta" score_type="total_score"
+               threshold="0.0" confidence="0" />
+    <ScoreType name="score_beta_cart" scorefxn="beta_cart" score_type="total_score"
+               threshold="0.0" confidence="0" />
+    <ScoreType name="beta_aa_comp" scorefxn="beta_aa_comp_hbnet" score_type="total_score"
+               threshold="0.0" confidence="0" />
+    <ResidueCount name="nres" confidence="0" />
+    <BuriedSurfaceArea name="BuriedHyphobSA" select_only_FAMILYVW="True" confidence="0.0" />
+        <CalculatorFilter name="BuriedHyphobSAperRes" equation="HSA/RES" threshold="0" confidence="0.0">
+                <Var name="HSA" filter="BuriedHyphobSA" />
+                <Var name="RES" filter="nres"/>
+        </CalculatorFilter>
+    <CalculatorFilter name="score_res_opt" confidence="0" equation="SCORE/NRES" threshold="-2.10">
+      <Var name="SCORE" filter_name="beta_aa_comp" />
+      <Var name="NRES" filter_name="nres" />
+    </CalculatorFilter>
+    <CalculatorFilter name="score_res" confidence="0" equation="SCORE/NRES" threshold="-2.10">
+      <Var name="SCORE" filter_name="score" />
+      <Var name="NRES" filter_name="nres" />
+    </CalculatorFilter>
+    <CalculatorFilter name="score_res_betacart" confidence="0" equation="SCORE/NRES" threshold="-2.10">
+      <Var name="SCORE" filter_name="score_beta_cart" />
+      <Var name="NRES" filter_name="nres" />
+    </CalculatorFilter>
+    <BuriedSurfaceArea name="buried_SA" cutoff_buried_surface_area="0" atom_mode="hydrophobic_atoms" residue_selector="not_loops" confidence="0"/>
+    <ResidueCount name="noloop_residues" residue_selector="not_loops" confidence="0"  />
+    <CalculatorFilter name="buried_per_res" equation="bur/res" threshold="0.0" confidence="0" >
+                <VAR name="bur" filter="buried_SA" />
+                <VAR name="res" filter="noloop_residues" />
+    </CalculatorFilter>
+    <TotalSasa name="SASA" hydrophobic="false" polar="false" confidence="0"/>
+    <BuriedSurfaceArea name="buried_SA_all" cutoff_buried_surface_area="0" atom_mode="all_atoms" confidence="0"/>
+    <CalculatorFilter name="buried_ratio" equation="-1*(bur/sasa)" threshold="-2.1" confidence="0" >
+                <VAR name="bur" filter="buried_SA_all" />
+                <VAR name="sasa" filter="SASA" />
+    </CalculatorFilter>
+    <ResidueCount name="H1_nres" confidence="0" residue_selector="helix1"/>
+    <BuriedSurfaceArea name="buried_SA_H1" cutoff_buried_surface_area="0" atom_mode="all_atoms" confidence="0" residue_selector="helix1"/>
+    <CalculatorFilter name="buried_ratio_H1" equation="-1*(bur/sasa)" threshold="-2.1" confidence="0" >
+                <VAR name="bur" filter="buried_SA_H1" />
+                <VAR name="sasa" filter="H1_nres" />
+    </CalculatorFilter>
+    <BuriedSurfaceArea name="buried_hyphob_SA_H1" cutoff_buried_surface_area="0" atom_mode="hydrophobic_atoms" confidence="0" residue_selector="helix1"/>
+    <CalculatorFilter name="buried_hyphob_ratio_H1" equation="-1*(bur/sasa)" threshold="-2.1" confidence="0" >
+                <VAR name="bur" filter="buried_hyphob_SA_H1" />
+                <VAR name="sasa" filter="H1_nres" />
+    </CalculatorFilter>
+    <ResidueCount name="helices_nres" confidence="0" residue_selector="helices"/>
+    <BuriedSurfaceArea name="buried_SA_helices" cutoff_buried_surface_area="0" atom_mode="all_atoms" confidence="0" residue_selector="helices"/>
+    <CalculatorFilter name="buried_ratio_helices" equation="-1*(bur/sasa)" threshold="-2.1" confidence="0" >
+                <VAR name="bur" filter="buried_SA_helices" />
+                <VAR name="sasa" filter="helices_nres" />
+    </CalculatorFilter>
+    <AverageDegree name="avdeg_H1" confidence="0.0" task_operations="repack_H1,not_repack_H1"/>
+    <AverageDegree name="avdeg" confidence="0.0" task_operations="repack_all" />
+    <AverageDegree name="avdeg_H3" confidence="0.0" task_operations="repack_H3,not_repack_H3"/>
+    <BuriedUnsatHbonds name="sc_buns" report_sc_heavy_atom_unsats="True" use_legacy_options="False" scorefxn="beta"
+		       cutoff="0" ignore_surface_res="True" print_out_info_to_pdb="True" confidence="0"/>
+    <BuriedUnsatHbonds name="all_buns" report_sc_heavy_atom_unsats="False" report_bb_heavy_atom_unsats="False" report_all_heavy_atom_unsats="True"
+			use_legacy_options="False" scorefxn="beta" cutoff="0" ignore_surface_res="True" print_out_info_to_pdb="True" confidence="0"/>
+    <NetCharge name="Net_charge" confidence="0"/>
+    <TaskAwareScoreType name="gly_resc_score" score_type="total_score" mode="total" task_operations="not_gly_resc" scorefxn="beta" confidence="0.0" />
+    <TaskAwareScoreType name="gly_resc_atr" score_type="fa_atr" mode="total" task_operations="not_gly_resc" scorefxn="beta" confidence="0.0" />
+    <ResidueCount name="gly_resc_nres" confidence="0" residue_selector="gly_resc"/>
+    <TaskAwareScoreType name="trp_lock_score" score_type="total_score" mode="total" task_operations="not_trp_lock" scorefxn="beta" confidence="0.0" />
+    <!-- ################ MC FILTERS: ############################### -->
+    <CalculatorFilter name="dsasa_opt" equation="MAX(0.95,x)" confidence="1">
+	<VAR name="x" filter="dsasa"/>
+    </CalculatorFilter>
+    <CalculatorFilter name="logistic_score_res" equation="(1/((1/((TEMP/ALLOW)*(x-THRESH)+1))+EXP((((-1*x)+THRESH))*(1/(TOL)^2))))" threshold="0.05" confidence="1" >
+                <VAR name="x" filter="score_res" />
+                <VAR name="THRESH" value="-4.3" />
+		<VAR name="TOL" value="0.15" />
+		<VAR name="TEMP" value="0.2" />
+		<VAR name="ALLOW" value="0.05" />
+    </CalculatorFilter>
+    <CalculatorFilter name="logistic_score_res_opt" equation="(1/((1/((TEMP/ALLOW)*(x-THRESH)+1))+EXP((((-1*x)+THRESH))*(1/(TOL)^2))))" threshold="0.05" confidence="1" >
+                <VAR name="x" filter="score_res_opt" />
+                <VAR name="THRESH" value="-4.3" />
+                <VAR name="TOL" value="0.15" />
+                <VAR name="TEMP" value="0.2" />
+                <VAR name="ALLOW" value="0.05" />
+    </CalculatorFilter>
+    <CalculatorFilter name="logistic_sspred" equation="(1/((1/((TEMP/ALLOW)*(x+THRESH)+1))+EXP((((-1*x)+THRESH))*(1/(TOL)^2))))" threshold="0.05" confidence="1" >
+                <VAR name="x" filter="sspred" />
+                <VAR name="THRESH" value="0.35" />
+                <VAR name="TOL" value="0.15" />
+                <VAR name="TEMP" value="0.2" />
+                <VAR name="ALLOW" value="0.025" />
+    </CalculatorFilter>
+    <CalculatorFilter name="logistic_hx_sc" equation="(1/((1/((TEMP/ALLOW)*(-1*x+THRESH)+1))+EXP((((x)-THRESH))*(1/(TOL)^2))))" threshold="0.05" confidence="1" >
+                <VAR name="x" filter="hx_sc" />
+                <VAR name="THRESH" value="0.7" />
+                <VAR name="TOL" value="0.025" />
+                <VAR name="TEMP" value="0.2" />
+                <VAR name="ALLOW" value="0.025" />
+    </CalculatorFilter>
+    <CalculatorFilter name="logistic_SC" equation="(1/((1/((TEMP/ALLOW)*(-1*x+THRESH)+1))+EXP((((x)-THRESH))*(1/(TOL)^2))))" threshold="0.05" confidence="1" >
+                <VAR name="x" filter="SC" />
+                <VAR name="THRESH" value="0.65" />
+                <VAR name="TOL" value="0.025" />
+                <VAR name="TEMP" value="0.2" />
+                <VAR name="ALLOW" value="0.025" />
+    </CalculatorFilter>
+    <CalculatorFilter name="logistic_non_ala_hyphob_percent" equation="(1/((1/((TEMP/ALLOW)*(-0.01*x+THRESH)+1))+EXP((((0.01*x)-THRESH))*(1/(TOL)^2))))" threshold="0.05" confidence="1" >
+                <VAR name="x" filter="non_ala_hyphob_percent" />
+                <VAR name="THRESH" value="0.27" />
+                <VAR name="TOL" value="0.01" />
+                <VAR name="TEMP" value="0.2" />
+                <VAR name="ALLOW" value="0.005" />
+    </CalculatorFilter>
+    <CalculatorFilter name="logistic_Net_charge" equation="MAX(-2,x)" threshold="-2.1" confidence="1" >
+                <VAR name="x" filter="Net_charge" />
+    </CalculatorFilter>
+  </FILTERS>
+  <MOVERS>
+    <AddNetChargeConstraintMover name="netcharge_pocket" filename="%%pocket_charge%%" selector="inward" />
+    <AddCompositionConstraintMover name="pocket_comp" filename="%%pocketcomp%%" selector="inward" />
+    <AddCompositionConstraintMover name="core_comp" filename="%%core_comp%%" selector="core_SCN" />
+    <AddCompositionConstraintMover name="surface_comp" filename="%%surface_comp%%" selector="semi_surface_SCN" />
+    <AddConstraintsToCurrentConformationMover name="add_cst" use_distance_cst="True" coord_dev="1.5" bound_width="0.0"
+                                                  min_seq_sep="8" max_distance="12.0" cst_weight="1.0" CA_only="True" />
+    <PackRotamersMover name="place_gly_resc" scorefxn="beta_cart" task_operations="gly_resc_gly_to,gly_resc_gly_to_sec,not_gly_resc"/>
+    <PackRotamersMover name="repack" scorefxn="beta_cart" task_operations="repack_all,ic,ex"/>
+    <PackRotamersMover name="soft_pack" scorefxn="beta_soft"
+	task_operations="gly_resc_gly_to,gly_resc_gly_to_sec,strands_to,SS,ic,bulge_A_TO,H1c_TO,L2_1_TO,L2_2_TO,L3_2_TO,L3_3_TO,lock_trp_TO,lock_lys_TO,lock_small_TO,LimitAromaChi2,design_inward,repack_not_inward,keep_HBNet_TO,repack_HCY,pre_tight_PRO_TO,tight_PRO_TO,post_tight_PRO_TO,resfile,consensus_loop"/>
+    <StoreResidueSubset name="store_random_residue" subset_name="stored_random" residue_selector="select_random" overwrite="True" />
+    <RandomMutation name="mutate" task_operations="gly_resc_gly_to,gly_resc_phe_to,gly_resc_gly_to_sec,gly_resc_phe_to_sec,strands_to,SS,ic,pt_mut,around_pt_mut,bulge_A_TO,H1c_TO,L2_1_TO,L2_2_TO,L3_2_TO,L3_3_TO,lock_trp_TO,lock_lys_TO,lock_small_TO,LimitAromaChi2,fix,consensus_loop" scorefxn="beta_aa_comp_hbnet"/>
+    <MinMover name="sc_min" scorefxn="beta" chi="True" bb="False" cartesian="False" type="lbfgs_armijo_nonmonotone" tolerance="0.0001" max_iter="20000" />
+    <MinMover name="cart_min" max_iter="2000" type="lbfgs_armijo_nonmonotone" tolerance="0.0001" cartesian="True" bondangle="True" bondlength="True" chi="True" bb="True" omega="True"
+        scorefxn="beta_cart" />
+
+
+	<FastRelax name="Relax_cart" scorefxn="beta_cart" task_operations="ic,ex"
+               cartesian="True" bondangle="True" bondlength="True" dualspace="True"
+               min_type="lbfgs_armijo_nonmonotone" repeats="5"/>
+	<FastRelax name="Relax_cart_1" scorefxn="beta_cart" task_operations="ic"
+               cartesian="True" bondangle="True" bondlength="True" dualspace="True"
+               min_type="lbfgs_armijo_nonmonotone" repeats="1"/>
+    <AddConstraints name="add_csts" >
+    <FileConstraintGenerator name="hb_cst" filename="%%hbonds_cst%%" />
+    </AddConstraints>
+    
+    <RemoveConstraints name="rm_cst" constraint_generators="hb_cst" />
+
+
+    <FastDesign name="FD_1" scorefxn="beta_aa_comp_cart" clear_designable_residues="False"
+    task_operations="gly_resc_gly_to,gly_resc_gly_to_sec,strands_to,SS,ic,bulge_A_TO,H1c_TO,L2_1_TO,L2_2_TO,L3_2_TO,L3_3_TO,lock_trp_TO,lock_lys_TO,lock_small_TO,LimitAromaChi2,design_inward,repack_not_inward,keep_HBNet_TO,repack_HCY,pre_tight_PRO_TO,tight_PRO_TO,post_tight_PRO_TO,resfile,consensus_loop"
+    cartesian="True" bondangle="True" bondlength="True" relaxscript="rosettacon2018"
+    min_type="lbfgs_armijo_nonmonotone" repeats="1"/>
+
+  </MOVERS>
+  <PROTOCOLS>
+    <Add mover_name="surface_comp"/>
+    <Add mover_name="core_comp"/>
+    <Add mover_name="netcharge_pocket"/>
+    <Add mover_name="pocket_comp"/>
+    <Add mover_name="add_csts"/>
+    <Add mover_name="soft_pack"/>
+    <Add mover_name="sc_min"/>
+    <!--Add mover_name="Relax_cart_1"/-->
+    <Add mover_name="FD_1"/>
+    <Add mover_name="rm_cst"/>
+    <Add filter_name="hb_O2"/>
+    <Add filter_name="hb_O3"/>
+    <Add filter_name="hb_O4"/>
+    <Add filter_name="hb_O5"/>
+    <Add mover_name="Relax_cart"/>
+    <Add filter_name="hb_O2"/>
+    <Add filter_name="hb_O3"/>
+    <Add filter_name="hb_O4"/>
+    <Add filter_name="hb_O5"/>
+    <Add filter_name="secstruct_filter"/>
+    <Add filter_name="sheet_topo"/>
+    <Add filter_name="Net_charge"/>
+    <Add filter_name="all_buns"/>
+    <Add filter_name="sc_buns"/>
+    <Add filter_name="geom"/>
+    <Add filter_name="rama_res"/>
+    <Add filter_name="hx_sc"/>
+    <Add filter_name="sspred"/>
+    <Add filter_name="score_res"/>
+    <Add filter_name="score_res_opt"/>
+    <Add filter_name="score_res_betacart"/>
+    <Add filter_name="buried_ratio"/>
+    <Add filter_name="BuriedHyphobSAperRes" />
+    <Add filter_name="buried_per_res"/>
+    <Add filter_name="buried_ratio_H1" />	
+    <Add filter_name="buried_hyphob_ratio_H1"/>
+    <Add filter_name="buried_ratio_helices" />
+    <Add filter_name="avdeg_H1" />
+    <Add filter_name="avdeg_H3" />
+    <Add filter_name="avdeg" />
+    <Add filter_name="av_strand_hb"/>
+    <Add filter_name="non_ala_hyphob_percent"/>
+    <Add filter_name="non_ala_hyphob_percent_H1"/>
+    <Add filter_name="non_ala_hyphob_percent_H3"/>
+    <Add filter_name="gly_resc_score"/>
+    <Add filter_name="gly_resc_atr"/>
+    <Add filter_name="gly_resc_nres"/>
+    <Add filter_name="trp_lock_score"/>
+    <Add filter_name="IFE"/>
+    <Add filter_name="SC"/>
+    <Add filter_name="dsasa"/>
+  </PROTOCOLS>
+</ROSETTASCRIPTS>
