@@ -1,6 +1,7 @@
 #!/sw/intel-python-2017.2.045/intelpython3/bin/python3
 
 from BeNTF2_toolkit import *
+from BeNTF2seq.BeNTF2resfile import *
 import json
 import sys
 import argparse
@@ -46,13 +47,6 @@ def MakeMoverFromXML(xmlfile,replaces,pose):
 	return in_mover
 
 def add_SS_labels(POSE,basic_NTF2Obj):
-	'''
-	info = POSE.pdb_info()
-	for i,pos in enumerate(basic_NTF2Obj.NTF2_bp.bp_data):
-		resn = i+1
-		ss_label = "SS_%s"%(pos[2][0])
-		info.add_reslabel(resn,ss_label)
-	'''
 	SS_list = [i[2][0] for i in basic_NTF2Obj.NTF2_bp.bp_data]
 	SS_string = ''.join(SS_list)
 	core.pose.add_comment(POSE,"SECSTRUCT",SS_string)
@@ -281,17 +275,18 @@ def GetTRPlockPositions(NTF2_obj):
 
 def DesignStep(POSE,NTF2_obj,ssstring,NTF2_dict,step=None):
 	replaces = ['SS=%s'%ssstring]
-
+	replaces.append('resfile=./%s.resfile'%(args.input_pdb.split('/')[-1]))
 	if step == 1:
-		replaces.append('aa_comp=%s/general2.comp'%db)
-		xmlfile = '%s/DesignStage1.xml'%db
-		#NTF2_obj.write_blueprint('test1.bp')
+		replaces.append('aa_comp=%s/BeNTF2seq/additional_files/general2.comp'%db)
+		xmlfile = '%s/BeNTF2seq/NonBinding/DesignStage1.xml'%db
+		NTF2_obj.write_blueprint('./blueprint')
 	elif step == 2:
-		replaces.append('aa_comp=%s/general2.comp'%db)
-		xmlfile = '%s/DesignStage2_hyak.xml'%db
+		replaces.append('aa_comp=%s/BeNTF2seq/additional_files/general2.comp'%db)
+		xmlfile = '%s/BeNTF2seq/NonBinding/DesignStage2.xml'%db
+		#NTF2_obj.write_blueprint('blueprint')
 	elif step == 3:
-		replaces.append('aa_comp=%s/general2.comp'%db)
-		xmlfile = '%s/DesignStage3_hyak.xml'%db
+		replaces.append('aa_comp=%s/BeNTF2seq/additional_files/general2.comp'%db)
+		xmlfile = '%s/BeNTF2seq/NonBinding/DesignStage3.xml'%db
 	else:
 		raise SystemExit('Invalid stage selection! Exiting')
 
@@ -349,20 +344,20 @@ def DesignStep(POSE,NTF2_obj,ssstring,NTF2_dict,step=None):
 		
 	replaces.append('hard_fa=beta_nov16')
 	replaces.append('sspredexec=/gscratch/baker/basantab/utils/psipred4.01/runpsipred_csbuild_single')
-	replaces.append('longHPcomp=%s/longHP.comp'%db)
-	replaces.append('sheet_comp=%s/sheet.comp'%db)
-	replaces.append('H1comp=%s/H1.comp'%db)
-	replaces.append('pocketcomp=%s/pocket.comp'%db)
-	replaces.append('pocket_charge=%s/neutral.charge'%db)
-	replaces.append('charge=%s/negative.charge'%db)
-	replaces.append('surface_Helix=%s/surface_Helix_filter.comp'%db)
-	replaces.append('surface_Strand=%s/surface_Strand_filter.comp'%db)
-	replaces.append('boundary_Helix=%s/boundary_Helix_filter.comp'%db)
-	replaces.append('boundary_Strand=%s/boundary_Strand_filter.comp'%db)
-	replaces.append('core_Helix=%s/core_Helix_filter.comp'%db)
-	replaces.append('core_Strand=%s/core_Strand_filter.comp'%db)
-	replaces.append('core_comp=%s/core.comp'%db)
-	replaces.append('surface_comp=%s/surface.comp'%db)
+	replaces.append('longHPcomp=%s/BeNTF2seq/additional_files/longHP.comp'%db)
+	replaces.append('sheet_comp=%s/BeNTF2seq/additional_files/sheet.comp'%db)
+	replaces.append('H1comp=%s/BeNTF2seq/additional_files/H1.comp'%db)
+	replaces.append('pocketcomp=%s/BeNTF2seq/additional_files/pocket.comp'%db)
+	replaces.append('pocket_charge=%s/BeNTF2seq/additional_files/neutral.charge'%db)
+	replaces.append('charge=%s/BeNTF2seq/additional_files/negative.charge'%db)
+	replaces.append('surface_Helix=%s/BeNTF2seq/additional_files/surface_Helix_filter.comp'%db)
+	replaces.append('surface_Strand=%s/BeNTF2seq/additional_files/surface_Strand_filter.comp'%db)
+	replaces.append('boundary_Helix=%s/BeNTF2seq/additional_files/boundary_Helix_filter.comp'%db)
+	replaces.append('boundary_Strand=%s/BeNTF2seq/additional_files/boundary_Strand_filter.comp'%db)
+	replaces.append('core_Helix=%s/BeNTF2seq/additional_files/core_Helix_filter.comp'%db)
+	replaces.append('core_Strand=%s/BeNTF2seq/additional_files/core_Strand_filter.comp'%db)
+	replaces.append('core_comp=%s/BeNTF2seq/additional_files/core.comp'%db)
+	replaces.append('surface_comp=%s/BeNTF2seq/additional_files/surface.comp'%db)
 	mover = MakeMoverFromXML(xmlfile,replaces,POSE)
 	try:mover.apply(POSE)
 	except RuntimeError:
@@ -403,8 +398,8 @@ db = args.database
 general_flags = ['-beta',\
 		'-out:file:pdb_comments',\
 		'-corrections:beta_nov16',\
-		'-out:file:pdb_comments',\
-		'-mute all']
+		'-out:file:pdb_comments']#,\
+		#'-mute all']
 
 prefix = ''
 
@@ -421,7 +416,7 @@ for trial in range(args.nstruct):
 		prefix = args.prefix
 	prefix = randomword(8)+'_'+prefix
 	'''
-	prefix = args.input_pdb.split('/')[-1].split('.')[0]
+	prefix = args.input_pdb.split('/')[-1].split('.')[0].split('_')[0]
 	print("Prefix: %s Trial: %d"%(prefix,trial))
 	
 	POSE = pose_from_file( filename=args.input_pdb)
@@ -435,6 +430,9 @@ for trial in range(args.nstruct):
 	NTF2_obj = CreateBasicNTF2fromDict(NTF2_dict,db=db)
 	NTF2_obj.NTF2_bp.reindex_blueprint()
 	add_H3_positions(POSE,NTF2_obj)
+	resfile_handle = open('%s.resfile'%(args.input_pdb.split('/')[-1]),'w')
+	for line in ProduceResfileLines(POSE,NTF2_obj): resfile_handle.write(line)
+	resfile_handle.close()
 	#### STEP 1 ####
 	step1_files = glob.glob('*_BasicBeNTF2_step1_*.pdb')
 	step2_files = glob.glob('*_BasicBeNTF2_step2_*.pdb')
@@ -446,7 +444,7 @@ for trial in range(args.nstruct):
 		print("Step1 files found: %s"%(' '.join(step1_files)) )
 		if not (len(step1_files) == 1):
 			raise ValueError('You have more than one step1 file in this dir!')
-		prefix = args.input_pdb.split('/')[-1].split('.')[0]
+		prefix = args.input_pdb.split('/')[-1].split('.')[0].split('_')[0]
 		POSE = pose_from_file( filename=step1_files[0])
 		pdb_file_handle = open(step1_files[0],'r')
 		pdb_file_lines = pdb_file_handle.readlines()
@@ -466,7 +464,7 @@ for trial in range(args.nstruct):
 		print("Step2 files found: %s"%(' '.join(step2_files)) )
 		if not (len(step2_files) == 1):
 			raise ValueError('You have more than one step2 file in this dir!')
-		prefix = args.input_pdb.split('/')[-1].split('.')[0]
+		prefix = args.input_pdb.split('/')[-1].split('.')[0].split('_')[0]
 		POSE = pose_from_file( filename=step2_files[0])
 		pdb_file_handle = open(step2_files[0],'r')
 		pdb_file_lines = pdb_file_handle.readlines()
