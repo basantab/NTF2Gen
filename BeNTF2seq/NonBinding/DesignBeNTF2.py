@@ -350,14 +350,9 @@ def DesignStep(POSE,NTF2_obj,ssstring,NTF2_dict,step=None):
 	replaces.append('pocketcomp=%s/BeNTF2seq/additional_files/pocket.comp'%db)
 	replaces.append('pocket_charge=%s/BeNTF2seq/additional_files/neutral.charge'%db)
 	replaces.append('charge=%s/BeNTF2seq/additional_files/negative.charge'%db)
-	replaces.append('surface_Helix=%s/BeNTF2seq/additional_files/surface_Helix_filter.comp'%db)
-	replaces.append('surface_Strand=%s/BeNTF2seq/additional_files/surface_Strand_filter.comp'%db)
-	replaces.append('boundary_Helix=%s/BeNTF2seq/additional_files/boundary_Helix_filter.comp'%db)
-	replaces.append('boundary_Strand=%s/BeNTF2seq/additional_files/boundary_Strand_filter.comp'%db)
-	replaces.append('core_Helix=%s/BeNTF2seq/additional_files/core_Helix_filter.comp'%db)
-	replaces.append('core_Strand=%s/BeNTF2seq/additional_files/core_Strand_filter.comp'%db)
 	replaces.append('core_comp=%s/BeNTF2seq/additional_files/core.comp'%db)
 	replaces.append('surface_comp=%s/BeNTF2seq/additional_files/surface.comp'%db)
+	replaces.append('bp=./blueprint')
 	mover = MakeMoverFromXML(xmlfile,replaces,POSE)
 	try:mover.apply(POSE)
 	except RuntimeError:
@@ -430,20 +425,22 @@ for trial in range(args.nstruct):
 	NTF2_obj = CreateBasicNTF2fromDict(NTF2_dict,db=db)
 	NTF2_obj.NTF2_bp.reindex_blueprint()
 	add_H3_positions(POSE,NTF2_obj)
-	resfile_handle = open('%s.resfile'%(args.input_pdb.split('/')[-1]),'w')
-	for line in ProduceResfileLines(POSE,NTF2_obj): resfile_handle.write(line)
-	resfile_handle.close()
 	#### STEP 1 ####
 	step1_files = glob.glob('*_BasicBeNTF2_step1_*.pdb')
 	step2_files = glob.glob('*_BasicBeNTF2_step2_*.pdb')
 	if (len(step1_files) == 0) and (len(step2_files) == 0 ) :
+		resfile_handle = open('%s.resfile'%(args.input_pdb.split('/')[-1]),'w')
+		for line in ProduceResfileLines(POSE,NTF2_obj): resfile_handle.write(line)
+		resfile_handle.close()
 		success = DesignStep(POSE,NTF2_obj,ssstring,NTF2_dict,step=1)
 		if not success: continue
 		print('Passed step 1')
+	
 	elif (len(step2_files) == 0 ):
 		print("Step1 files found: %s"%(' '.join(step1_files)) )
 		if not (len(step1_files) == 1):
 			raise ValueError('You have more than one step1 file in this dir!')
+		#success = DesignStep(POSE,NTF2_obj,ssstring,NTF2_dict,step=1)
 		prefix = args.input_pdb.split('/')[-1].split('.')[0].split('_')[0]
 		POSE = pose_from_file( filename=step1_files[0])
 		pdb_file_handle = open(step1_files[0],'r')
@@ -455,6 +452,7 @@ for trial in range(args.nstruct):
 		NTF2_dict = json.loads(NTF2_dict_string)
 		NTF2_obj = CreateBasicNTF2fromDict(NTF2_dict,db=db)
 		NTF2_obj.NTF2_bp.reindex_blueprint()
+	
 	#### STEP 2 ####
 	if len(step2_files) == 0:
 		success = DesignStep(POSE,NTF2_obj,ssstring,NTF2_dict,step=2)

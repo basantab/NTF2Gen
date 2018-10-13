@@ -10,6 +10,7 @@ from rosetta import *
 import numpy as np
 from glob import glob
 import pandas as pnd
+import json
 
 def get_base_width(bp):
 	# Base widths:
