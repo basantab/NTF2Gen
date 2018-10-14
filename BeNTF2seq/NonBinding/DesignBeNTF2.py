@@ -392,8 +392,8 @@ db = args.database
 
 general_flags = ['-beta',\
 		'-out:file:pdb_comments',\
-		'-out:file:pdb_comments']#,\
-		#'-mute all']
+		'-out:file:pdb_comments',\
+		'-mute all']
 
 prefix = ''
 
