@@ -182,7 +182,7 @@
     <OperateOnResidueSubset name="fix_all" selector="all" > <PreventRepackingRLT/> </OperateOnResidueSubset>
   </TASKOPERATIONS>
   <FILTERS>
-    <SecondaryStructure name="secstruct_filter" blueprint="%%bp%%" use_abego="False" treat_L_as_D="True" threshold="1.0" confidence="1" compute_pose_secstruct_by_dssp="True"/>
+    <SecondaryStructure name="secstruct_filter" blueprint="%%bp%%" use_abego="False" treat_L_as_D="True" threshold="0.97" confidence="1" compute_pose_secstruct_by_dssp="True"/>
     <SheetTopology name="sheet_topo" ignore_register_shift="True" use_dssp="True" blueprint="%%bp%%" confidence="1.0" />
 
     <ResidueCount name="non_ala_hyphob_percent" confidence="0.0" residue_types="PHE,ILE,LEU,MET,VAL,TRP,TYR" count_as_percentage="True"/>

@@ -1,5 +1,5 @@
 SSPAIR 1-2.A.0;3-4.A.0;1-6.P.-5
-1    A    LX    R
+1    A    LG    R
 2    A    HA    R
 3    A    HA    R
 4    A    HA    R
@@ -37,8 +37,8 @@ SSPAIR 1-2.A.0;3-4.A.0;1-6.P.-5
 36    A    EB    .
 37    A    EB    .
 38    A    EB    .
-39    A    LX    .
-40    A    LX    .
+39    A    LG    .
+40    A    LG    .
 41    A    EB    .
 42    A    EB    .
 43    A    EB    .
@@ -74,8 +74,8 @@ SSPAIR 1-2.A.0;3-4.A.0;1-6.P.-5
 73    A    EB    .
 74    A    EB    .
 75    A    EB    .
-76    A    LX    .
-77    A    LX    .
+76    A    LG    .
+77    A    LG    .
 78    A    EB    .
 79    A    EB    .
 80    A    EB    .
@@ -90,8 +90,8 @@ SSPAIR 1-2.A.0;3-4.A.0;1-6.P.-5
 89    A    EB    .
 90    A    EB    .
 91    A    EB    .
-92    A    LX    .
-93    A    LX    .
+92    A    LE    .
+93    A    LA    .
 94    A    EB    .
 95    A    EB    .
 96    A    EB    .
@@ -119,4 +119,4 @@ SSPAIR 1-2.A.0;3-4.A.0;1-6.P.-5
 118    A    EB    .
 119    A    EB    .
 120    A    EB    .
-121    A    LX    .
+121    A    LO    .

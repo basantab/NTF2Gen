@@ -342,7 +342,7 @@ def DesignStep(POSE,NTF2_obj,ssstring,NTF2_dict,step=None):
 		gly_pos_label = 'GRG'
 		info.add_reslabel(gly_positions[1],gly_pos_label)
 		
-	replaces.append('hard_fa=beta_nov16')
+	replaces.append('hard_fa=beta_genpot')
 	replaces.append('sspredexec=/gscratch/baker/basantab/utils/psipred4.01/runpsipred_csbuild_single')
 	replaces.append('longHPcomp=%s/BeNTF2seq/additional_files/longHP.comp'%db)
 	replaces.append('sheet_comp=%s/BeNTF2seq/additional_files/sheet.comp'%db)
@@ -392,7 +392,6 @@ db = args.database
 
 general_flags = ['-beta',\
 		'-out:file:pdb_comments',\
-		'-corrections:beta_nov16',\
 		'-out:file:pdb_comments']#,\
 		#'-mute all']
 
