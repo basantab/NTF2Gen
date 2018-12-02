@@ -113,17 +113,22 @@ class NTF2_sheet():
 		if self.Second_bulge_E3:
 			if (type(self.Second_b_place) is not int) or \
 			(type(self.E3_SecBulgeCurve) is not int):
-				exit_status_OK = False
+				raise Exception("Incompatible values")
 		if (self.E3_MainBulgeCurve == 1) and (type(self.ExtendedE6) is not bool):
-			exit_status_OK = False
+			raise Exception("Incompatible values")
 		if not exit_status_OK: raise ValueError("You asked for a second bulge in E3 but it's placement is not an integer")
 		# Now check to make sure that the selected values are allowed:
-		if (self.base_width not in NTF2_sheet.sheet_atributes_Dict["base_width"]) or \
-		(self.long_arm_l not in NTF2_sheet.sheet_atributes_Dict["long_arm_l"]) or \
-		(self.short_arm_l not in NTF2_sheet.sheet_atributes_Dict["short_arm_l"]) or \
-		(self.Second_bulge_E3 not in NTF2_sheet.sheet_atributes_Dict["Second_bulge_E3"]) or \
-		(self.E3_MainBulgeCurve not in NTF2_sheet.sheet_atributes_Dict["E3_MainBulgeCurve"]):
-			exit_status_OK = False
+		if (self.base_width not in NTF2_sheet.sheet_atributes_Dict["base_width"]):
+			raise Exception("Incompatible values")
+		if (self.long_arm_l not in NTF2_sheet.sheet_atributes_Dict["long_arm_l"]):
+			raise Exception("Incompatible values")
+		if (self.short_arm_l not in NTF2_sheet.sheet_atributes_Dict["short_arm_l"]):
+			raise Exception("Incompatible values")
+		if (self.Second_bulge_E3 not in NTF2_sheet.sheet_atributes_Dict["Second_bulge_E3"]):
+			raise Exception("Incompatible values")
+		if (self.E3_MainBulgeCurve not in NTF2_sheet.sheet_atributes_Dict["E3_MainBulgeCurve"]):
+			#exit_status_OK = False
+			raise Exception("Incompatible values")
 		if self.Second_bulge_E3:
 			if (self.Second_b_place not in NTF2_sheet.sheet_atributes_Dict["Second_b_place"]) or \
 			(self.E3_SecBulgeCurve not in NTF2_sheet.sheet_atributes_Dict["E3_SecBulgeCurve"]):
