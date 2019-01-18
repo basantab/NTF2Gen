@@ -1,6 +1,6 @@
 #!/software/miniconda3/envs/pyrosetta3/bin/python3
 
-from BeNTF2_Koga_toolkit import *
+from BeNTF2_toolkit import *
 import json
 import sys
 
@@ -61,7 +61,8 @@ def compare_two(fname1, fname2):
 
 def get_dict_fname(fname):
 	pdb1_handle = open(fname,'r')
-	dict1_str = ' '.join([line[:-1] for line in pdb1_handle.readlines() if 'BENTF2DICT' in line ][0].split()[1:])
+	try: dict1_str = ' '.join([line[:-1] for line in pdb1_handle.readlines() if 'BENTF2DICT' in line ][0].split()[1:])
+	except: print('Offending file: %s'%fname)
 	pdb1_handle.close()
 	dict1 = json.loads(dict1_str)
 	return dict1
