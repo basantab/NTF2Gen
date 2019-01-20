@@ -38,7 +38,7 @@ def compare_BeNTF2FinalPartsDict(dict1,dict2):
 def compare_BeNTF2Dict(dict1,dict2):
 	sheet_dict1 = dict1["ring_dict"]["sheet_dict"]
 	sheet_dict2 = dict2["ring_dict"]["sheet_dict"]
-	sheet_same = compare_SheetDict(sheet_dict1,sheet_dict1)
+	sheet_same = compare_SheetDict(sheet_dict1,sheet_dict2)
 	if not sheet_same: return False
 	ring_dict1 = dict1["ring_dict"]
 	ring_dict2 = dict2["ring_dict"]
