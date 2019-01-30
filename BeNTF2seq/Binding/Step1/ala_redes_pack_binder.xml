@@ -51,7 +51,7 @@
       <Reweight scoretype="angle_constraint" weight="1.0"/>
       <Reweight scoretype="netcharge" weight="1.0" />
       <Reweight scoretype="aa_composition" weight="1.0" />
-      <Reweight scoretype="cart_bonded" weight="1.0" />
+      <Reweight scoretype="cart_bonded" weight="0.8" />
       <Set aa_composition_setup_file="%%aa_comp%%" />
     </ScoreFunction>
     <ScoreFunction name="beta_cart" weights="beta_genpot_cart">
@@ -59,6 +59,7 @@
       <Reweight scoretype="coordinate_constraint" weight="1.0"/>
       <Reweight scoretype="angle_constraint" weight="1.0"/>
       <Reweight scoretype="dihedral_constraint" weight="1.0"/>
+      <Reweight scoretype="cart_bonded" weight="0.8" />
     </ScoreFunction>
   </SCOREFXNS>
 <RESIDUE_SELECTORS>
@@ -227,15 +228,13 @@
   </TASKOPERATIONS>
   <FILTERS>
     <DSasa name="dsasa" lower_threshold="0.0" upper_threshold="1.0" confidence="0.0"/>
-    <SimpleHbondsToAtomFilter name="hb_O2_0conf" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O2" res_num="%%lig_pos%%" scorefxn="beta" confidence="0.0"/>
     <SimpleHbondsToAtomFilter name="hb_O3_0conf" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O3" res_num="%%lig_pos%%" scorefxn="beta" confidence="0.0"/>
-    <SimpleHbondsToAtomFilter name="hb_O4_0conf" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O4" res_num="%%lig_pos%%" scorefxn="beta" confidence="0.0"/>
+    <SimpleHbondsToAtomFilter name="hb_O6_0conf" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O6" res_num="%%lig_pos%%" scorefxn="beta" confidence="0.0"/>
     <SimpleHbondsToAtomFilter name="hb_O5_0conf" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O5" res_num="%%lig_pos%%" scorefxn="beta" confidence="0.0"/>
 
-    <CalculatorFilter name="HB_to_atm" equation="1-0.25*MIN(1,hb_O3)-0.25*MIN(1,hb_O4)-0.25*MIN(1,hb_O5)-0.25*MIN(1,hb_O2)" threshold="-2.1" confidence="0" >
-                <VAR name="hb_O2" filter="hb_O2_0conf" />
+    <CalculatorFilter name="HB_to_atm" equation="1-0.25*MIN(1,hb_O3)-0.25*MIN(1,hb_O6)-0.25*MIN(1,hb_O5)" threshold="-2.1" confidence="0" >
                 <VAR name="hb_O3" filter="hb_O3_0conf" />
-		<VAR name="hb_O4" filter="hb_O4_0conf" />
+		<VAR name="hb_O6" filter="hb_O6_0conf" />
 		<VAR name="hb_O5" filter="hb_O5_0conf" />
     </CalculatorFilter>
     <ShapeComplementarity name="SC" min_sc="0.0" jump="1" residue_selector1="chain_b" residue_selector2="not_chain_b" confidence="0.0"/>
@@ -325,8 +324,7 @@
     <AddCompositionConstraintMover name="pocket_comp" filename="%%pocketcomp%%" selector="inward" />
     <AddCompositionConstraintMover name="core_comp" filename="%%core_comp%%" selector="core_SCN" />
     <AddCompositionConstraintMover name="surface_comp" filename="%%surface_comp%%" selector="semi_surface_SCN" />
-    <AddConstraintsToCurrentConformationMover name="add_cst" use_distance_cst="True" coord_dev="2.0" bound_width="0.0"
-                                                  min_seq_sep="8" max_distance="12.0" cst_weight="1.0" CA_only="True" />
+    <AddConstraintsToCurrentConformationMover name="add_cst" use_distance_cst="False" coord_dev="1.0" bound_width="0.0" CA_only="False" cst_weight="3.0" />
     <PackRotamersMover name="place_gly_resc" scorefxn="beta_aa_comp_charge" task_operations="gly_resc_gly_to,gly_resc_gly_to_sec,pre_tight_PRO_TO,tight_PRO_TO,post_tight_PRO_TO,not_placing_specific"/>
     <PackRotamersMover name="repack" scorefxn="beta_cart" task_operations="repack_all,ic,ex"/>
     <FastDesign name="design_all" scorefxn="beta_aa_comp_cart" repeats="1" cartesian="True"
@@ -345,7 +343,8 @@
 	<FastRelax name="Relax_cart_1" scorefxn="beta_cart" task_operations="ic"
                cartesian="True" bondangle="True" bondlength="True" dualspace="True"
                min_type="lbfgs_armijo_nonmonotone" repeats="1"/>
-
+    <VirtualRoot name="add_VR" removable="True" remove="False" />
+    <VirtualRoot name="rm_VR" removable="True" remove="True" />
     <ClearConstraintsMover name="rm_cst" />
   
  </MOVERS>
@@ -354,12 +353,12 @@
     <Add mover_name="core_comp"/>
     <Add mover_name="pocket_comp"/>
     <Add mover_name="place_gly_resc"/>
-    
+    <Add mover_name="add_VR"/>
+    <Add mover_name="add_cst"/>
+    <Add mover_name="cart_min"/>
+    <Add mover_name="rm_cst" />
+    <Add mover_name="rm_VR"/>
     <Add mover_name="design_all"/>
-    <!--Add mover_name="design_inward"/-->
-    <!--Add mover_name="add_cst"/-->
-    <!--Add mover_name="Relax_cart_1"/-->
-    <!--Add mover_name="rm_cst" /-->
     <Add filter_name="Net_charge"/>
     <Add filter_name="all_buns"/>
     <Add filter_name="sc_buns"/>
@@ -387,9 +386,8 @@
     <Add filter_name="gly_resc_atr"/>
     <Add filter_name="gly_resc_nres"/>
     <Add filter_name="trp_lock_score"/>
-    <Add filter_name="hb_O2_0conf"/>
     <Add filter_name="hb_O3_0conf"/>
-    <Add filter_name="hb_O4_0conf"/>
+    <Add filter_name="hb_O6_0conf"/>
     <Add filter_name="hb_O5_0conf"/>
     <Add filter_name="IFE"/>
     <Add filter_name="SC"/>
