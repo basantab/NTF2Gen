@@ -1,6 +1,6 @@
 #!/software/miniconda3/envs/pyrosetta3/bin/python
 
-from BeNTF2_Koga_toolkit import *
+from BeNTF2_toolkit import *
 import json
 import sys
 import argparse
