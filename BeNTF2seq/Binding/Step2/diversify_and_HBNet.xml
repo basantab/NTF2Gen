@@ -220,7 +220,7 @@
     <OperateOnResidueSubset name="fix_all" selector="all" > <PreventRepackingRLT/> </OperateOnResidueSubset>
   </TASKOPERATIONS>
   <FILTERS>
-    <SecondaryStructure name="secstruct_filter" blueprint="%%bp%%" use_abego="False" treat_L_as_D="True" threshold="1.0" confidence="1" compute_pose_secstruct_by_dssp="True"/>
+    <SecondaryStructure name="secstruct_filter" blueprint="%%bp%%" use_abego="False" treat_L_as_D="True" threshold="0.98" confidence="1" compute_pose_secstruct_by_dssp="True"/>
     <SheetTopology name="sheet_topo" ignore_register_shift="True" use_dssp="True" blueprint="%%bp%%" confidence="1.0" />
     <DSasa name="dsasa" lower_threshold="0.0" upper_threshold="1.0" confidence="0.0"/>
     <ShapeComplementarity name="SC" min_sc="0.0" jump="1" residue_selector1="chain_b" residue_selector2="not_chain_b" confidence="0.0"/>
@@ -352,16 +352,12 @@
 	        </ScoreFunction>
  	</SCOREFXNS>
 	<FILTERS>
-		<SimpleHbondsToAtomFilter name="hb_O2" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O2" res_num="%%lig_pos%%" scorefxn="beta" confidence="1.0"/>
-                <SimpleHbondsToAtomFilter name="hb_O3" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O3" res_num="%%lig_pos%%" scorefxn="beta" confidence="1.0"/>
-		<SimpleHbondsToAtomFilter name="hb_O4" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O4" res_num="%%lig_pos%%" scorefxn="beta" confidence="1.0"/>
-		<SimpleHbondsToAtomFilter name="hb_O5" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O5" res_num="%%lig_pos%%" scorefxn="beta" confidence="1.0"/>
+                <SimpleHbondsToAtomFilter name="hb_O5" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O5" res_num="%%lig_pos%%" scorefxn="beta" confidence="1.0"/>
+		<SimpleHbondsToAtomFilter name="hb_O6" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O6" res_num="%%lig_pos%%" scorefxn="beta" confidence="1.0"/>
     	</FILTERS>
 	<PROTOCOLS>
-		<Add filter_name="hb_O2"/>
-                <Add filter_name="hb_O3"/>
-	    	<Add filter_name="hb_O4"/>
-	    	<Add filter_name="hb_O5"/>
+                <Add filter_name="hb_O5"/>
+	    	<Add filter_name="hb_O6"/>
 	</PROTOCOLS>
     	</ROSETTASCRIPTS>
 	</MultiplePoseMover>

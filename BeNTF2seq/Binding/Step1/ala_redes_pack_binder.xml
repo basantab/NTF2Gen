@@ -324,7 +324,7 @@
     <AddCompositionConstraintMover name="pocket_comp" filename="%%pocketcomp%%" selector="inward" />
     <AddCompositionConstraintMover name="core_comp" filename="%%core_comp%%" selector="core_SCN" />
     <AddCompositionConstraintMover name="surface_comp" filename="%%surface_comp%%" selector="semi_surface_SCN" />
-    <AddConstraintsToCurrentConformationMover name="add_cst" use_distance_cst="False" coord_dev="1.0" bound_width="0.0" CA_only="False" cst_weight="3.0" />
+    <AddConstraintsToCurrentConformationMover name="add_cst" use_distance_cst="False" coord_dev="2.0" bound_width="0.0" CA_only="False" cst_weight="3.0" />
     <PackRotamersMover name="place_gly_resc" scorefxn="beta_aa_comp_charge" task_operations="gly_resc_gly_to,gly_resc_gly_to_sec,pre_tight_PRO_TO,tight_PRO_TO,post_tight_PRO_TO,not_placing_specific"/>
     <PackRotamersMover name="repack" scorefxn="beta_cart" task_operations="repack_all,ic,ex"/>
     <FastDesign name="design_all" scorefxn="beta_aa_comp_cart" repeats="1" cartesian="True"
@@ -357,8 +357,8 @@
     <Add mover_name="add_cst"/>
     <Add mover_name="cart_min"/>
     <Add mover_name="rm_cst" />
-    <Add mover_name="rm_VR"/>
     <Add mover_name="design_all"/>
+    <Add mover_name="rm_VR"/>
     <Add filter_name="Net_charge"/>
     <Add filter_name="all_buns"/>
     <Add filter_name="sc_buns"/>

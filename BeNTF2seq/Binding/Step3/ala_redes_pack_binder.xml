@@ -231,13 +231,11 @@
     <OperateOnResidueSubset name="fix_all" selector="all" > <PreventRepackingRLT/> </OperateOnResidueSubset>
   </TASKOPERATIONS>
   <FILTERS>
-    <SecondaryStructure name="secstruct_filter" blueprint="%%bp%%" use_abego="False" treat_L_as_D="True" threshold="1.0" confidence="1" compute_pose_secstruct_by_dssp="True"/>
+    <SecondaryStructure name="secstruct_filter" blueprint="%%bp%%" use_abego="False" treat_L_as_D="True" threshold="0.98" confidence="1" compute_pose_secstruct_by_dssp="True"/>
     <SheetTopology name="sheet_topo" ignore_register_shift="True" use_dssp="True" blueprint="%%bp%%" confidence="1.0" />
     <DSasa name="dsasa" lower_threshold="0.0" upper_threshold="1.0" confidence="0.0"/>
 
-    <SimpleHbondsToAtomFilter name="hb_O2" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O2" res_num="%%lig_pos%%" scorefxn="beta" confidence="1.0"/>
-    <SimpleHbondsToAtomFilter name="hb_O3" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O3" res_num="%%lig_pos%%" scorefxn="beta" confidence="1.0"/>
-    <SimpleHbondsToAtomFilter name="hb_O4" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O4" res_num="%%lig_pos%%" scorefxn="beta" confidence="1.0"/>
+    <SimpleHbondsToAtomFilter name="hb_O6" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O6" res_num="%%lig_pos%%" scorefxn="beta" confidence="1.0"/>
     <SimpleHbondsToAtomFilter name="hb_O5" n_partners="1" hb_e_cutoff="-0.3" target_atom_name="O5" res_num="%%lig_pos%%" scorefxn="beta" confidence="1.0"/>
 
     <ShapeComplementarity name="SC" min_sc="0.0" jump="1" residue_selector1="chain_b" residue_selector2="not_chain_b" confidence="0.0"/>
@@ -375,8 +373,7 @@
     <AddCompositionConstraintMover name="pocket_comp" filename="%%pocketcomp%%" selector="inward" />
     <AddCompositionConstraintMover name="core_comp" filename="%%core_comp%%" selector="core_SCN" />
     <AddCompositionConstraintMover name="surface_comp" filename="%%surface_comp%%" selector="semi_surface_SCN" />
-    <AddConstraintsToCurrentConformationMover name="add_cst" use_distance_cst="True" coord_dev="1.5" bound_width="0.0"
-                                                  min_seq_sep="8" max_distance="12.0" cst_weight="1.0" CA_only="True" />
+    <AddConstraintsToCurrentConformationMover name="add_cst" use_distance_cst="False" coord_dev="2.0" bound_width="0.0" CA_only="False" cst_weight="3.0" />
     <PackRotamersMover name="place_gly_resc" scorefxn="beta_cart" task_operations="gly_resc_gly_to,gly_resc_gly_to_sec,not_gly_resc"/>
     <PackRotamersMover name="repack" scorefxn="beta_cart" task_operations="repack_all,ic,ex"/>
     <PackRotamersMover name="soft_pack" scorefxn="beta_soft"
@@ -394,12 +391,14 @@
 	<FastRelax name="Relax_cart_1" scorefxn="beta_cart" task_operations="ic"
                cartesian="True" bondangle="True" bondlength="True" dualspace="True"
                min_type="lbfgs_armijo_nonmonotone" repeats="1"/>
-    <AddConstraints name="add_csts" >
+    <AddConstraints name="add_hb_csts" >
     <FileConstraintGenerator name="hb_cst" filename="%%hbonds_cst%%" />
     </AddConstraints>
     
-    <RemoveConstraints name="rm_cst" constraint_generators="hb_cst" />
-
+    <RemoveConstraints name="rm_hb_cst" constraint_generators="hb_cst" />
+    <VirtualRoot name="add_VR" removable="True" remove="False" />
+    <VirtualRoot name="rm_VR" removable="True" remove="True" />
+    <ClearConstraintsMover name="rm_all_cst" />
 
     <FastDesign name="FD_1" scorefxn="beta_aa_comp_cart" clear_designable_residues="False"
     task_operations="gly_resc_gly_to,gly_resc_gly_to_sec,strands_to,SS,ic,bulge_A_TO,H1c_TO,L2_1_TO,L2_2_TO,L3_2_TO,L3_3_TO,lock_trp_TO,lock_lys_TO,lock_small_TO,LimitAromaChi2,design_inward,repack_not_inward,keep_HBNet_TO,repack_HCY,pre_tight_PRO_TO,tight_PRO_TO,post_tight_PRO_TO,resfile,consensus_loop"
@@ -412,20 +411,27 @@
     <Add mover_name="core_comp"/>
     <Add mover_name="netcharge_pocket"/>
     <Add mover_name="pocket_comp"/>
-    <Add mover_name="add_csts"/>
+    <Add mover_name="add_hb_csts"/>
     <Add mover_name="soft_pack"/>
-    <Add mover_name="sc_min"/>
+    <Add mover_name="rm_all_cst"/>
+    <Add mover_name="add_VR"/>
+    <Add mover_name="add_hb_csts"/>
+    <Add mover_name="add_cst"/>
+    <Add mover_name="cart_min"/>
+    <Add mover_name="rm_hb_cst"/>
+    <Add mover_name="rm_all_cst"/>
+    <Add mover_name="rm_VR"/>
+    <Add mover_name="surface_comp"/>
+    <Add mover_name="core_comp"/>
+    <Add mover_name="netcharge_pocket"/>
+    <Add mover_name="pocket_comp"/>
     <!--Add mover_name="Relax_cart_1"/-->
     <Add mover_name="FD_1"/>
-    <Add mover_name="rm_cst"/>
-    <Add filter_name="hb_O2"/>
-    <Add filter_name="hb_O3"/>
-    <Add filter_name="hb_O4"/>
+    <Add mover_name="rm_hb_cst"/>
+    <Add filter_name="hb_O6"/>
     <Add filter_name="hb_O5"/>
     <Add mover_name="Relax_cart"/>
-    <Add filter_name="hb_O2"/>
-    <Add filter_name="hb_O3"/>
-    <Add filter_name="hb_O4"/>
+    <Add filter_name="hb_O6"/>
     <Add filter_name="hb_O5"/>
     <Add filter_name="secstruct_filter"/>
     <Add filter_name="sheet_topo"/>
