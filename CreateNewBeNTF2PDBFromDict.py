@@ -4,17 +4,7 @@ from BeNTF2_toolkit import *
 import json
 import argparse
 import copy
-
-########## Option system: ###########
-argparser = argparse.ArgumentParser(description='Create a BeNTF2 backbone.')
-argparser.add_argument('-database', type=str,help='XML file to use for ring generation, second step')
-# trials
-argparser.add_argument('-input_pdb', type=str,help='sheet pdb')
-#argparser.add_argument('-sheet_dict', type=str,help='sheet dict fname')
-argparser.add_argument('-nstruct', type=int,help='Max number of structures to output. May output less if some of them fail.')
-argparser.add_argument('-prefix', type=str,help='Prefix to add to output names.')
-args = argparser.parse_args()
-
+import os
 
 def MakeMoverFromXML(xmlfile,replaces,pose):
         print("Will attempt to create mover now")
@@ -341,7 +331,11 @@ if __name__ == "__main__":
         argparser.add_argument('-nstruct', type=int,help='Max number of structures to output. May output less if some of them fail.')
         argparser.add_argument('-prefix', type=str,help='Prefix to add to output names.')
         args = argparser.parse_args()
-        prefix = args.prefix
+        if args.prefix:
+                prefix = args.prefix
+        else:
+                prefix = os.path.basename(args.input_pdb).split('_')[0]
+        print("Using prefix: %s"%prefix)
 
         db = args.database
         general_flags = ['-rama_map %s/Rama_XPG_3level.txt'%db,\
@@ -361,6 +355,8 @@ if __name__ == "__main__":
         BeNTF2dict = json.loads(dict_string)
         features_v = []
         for trial in range(args.nstruct):
+                if os.path.isfile('%s_%d.pdb'%(prefix,trial)):
+                        continue
                 success =  False
                 for attempt in range(20):
                         POSE = pose_from_file( filename='%s/input.pdb'%db )
