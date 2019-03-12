@@ -317,181 +317,175 @@ def test_svm():
 	y_pred_test = SVC_model.predict(sc_X_test[:,important_f])
 	if y_pred_test == 32:
 		print('SVC works fine!')
+
+
+if __name__ == "__main__":	
+	# Initialize Rosetta:
+
+	db = args.database
+	general_flags = ['-rama_map %s/Rama_XPG_3level.txt'%db,\
+			'-picking_old_max_score 1',\
+			'-restore_talaris_behavior',
+			'-out:file:pdb_comments'] #,\
+			#'-mute all']
+
+	prefix = ''
+
+	init( extra_options=" ".join(general_flags) )
+	options = basic.options.process()
+
+
+	failed_mover_statuses_names = [ "FAIL_RETRY", "FAIL_DO_NOT_RETRY", "FAIL_BAD_INPUT"]
+	failed_mover_statuses = [ protocols.moves.mstype_from_name( name ) for name in failed_mover_statuses_names ]
+
+	ConnectionClasses = []
+	for i in [10,11,12,13,14,15]:
+		for j in RingConnection.Connection_types:
+			ConnectionClasses.append((i,j))
+
+	ConnectionClasses_dict = {i:n for n,i in enumerate(ConnectionClasses)}
+	inv_ConnectionClasses_dict = {v: k for k, v in ConnectionClasses_dict.items()}
+
+	sheet_type = random.choice( [i for i in range(1,69)] )
+
+	for trial in range(args.nstruct):
+
+		if not args.prefix:
+			prefix = ''
+		else:
+			prefix = args.prefix
+		prefix = randomword(8)+'_'+prefix
+		print("Prefix: %s Trial: %d"%(prefix,trial))
 	
-#def ConnectRing(POSE):
+		POSE = pose_from_file( filename='%s/input.pdb'%db )
+		init_pose_len = POSE.size()
+		sheet_obj,success = CreateSheet(POSE,n_trials_sheet=25,sheet_type=sheet_type)
+		if not success:
+			continue
+		print('Yes, now filtering for outward-facing long arm')
+		Base_LArm_angle =  Get_SheetBase_longArm_angle(POSE,sheet_obj)
+		Dist_to_bulgeE6 = Get_SheetE6bulge_E3N_dist(POSE,sheet_obj)
+		if sheet_obj.sheet_data['CurvedLongArm']:
+			if sheet_obj.sheet_data["long_arm_l"] == 3:
+				if Base_LArm_angle > 60:
+					print('Sheet is outward-facing, discarding')
+					continue
+					#raise Exception('Sheet is outward-facing, discarding')
+			if sheet_obj.sheet_data["long_arm_l"] == 4:
+				if Base_LArm_angle > 50:
+					print('Sheet is outward-facing, discarding')
+					continue
+					#raise Exception('Sheet is outward-facing, discarding')
+				elif Dist_to_bulgeE6 > 29:
+					print('Sheet is outward-facing, discarding')
+					continue
+					#raise Exception('Sheet is outward-facing, discarding')
 	
-# Initialize Rosetta:
-
-db = args.database
-general_flags = ['-rama_map %s/Rama_XPG_3level.txt'%db,\
-		'-picking_old_max_score 1',\
-		'-restore_talaris_behavior',
-		'-out:file:pdb_comments'] #,\
-		#'-mute all']
-
-prefix = ''
-
-init( extra_options=" ".join(general_flags) )
-options = basic.options.process()
-
-
-failed_mover_statuses_names = [ "FAIL_RETRY", "FAIL_DO_NOT_RETRY", "FAIL_BAD_INPUT"]
-failed_mover_statuses = [ protocols.moves.mstype_from_name( name ) for name in failed_mover_statuses_names ]
-
-ConnectionClasses = []
-for i in [10,11,12,13,14,15]:
-	for j in RingConnection.Connection_types:
-		ConnectionClasses.append((i,j))
-
-ConnectionClasses_dict = {i:n for n,i in enumerate(ConnectionClasses)}
-inv_ConnectionClasses_dict = {v: k for k, v in ConnectionClasses_dict.items()}
-
-#SVC_handle = open('%s/SVM1_SVC.pkl'%db, 'rb')
-#SVC_model = pickle.load(SVC_handle)
-#scaler_handle = open('%s/SVM1_scaler.pkl'%db, 'rb')
-#SVC_scaler = pickle.load(scaler_handle)
-#test_svm()
-
-sheet_type = random.choice( [i for i in range(1,69)] )
-
-for trial in range(args.nstruct):
+		### EXTRACT FEATURES: ###
+		dist = Get_SheetE6bulge_E3N_dist(POSE,sheet_obj)
+		long_arm_ang = Get_SheetBase_longArm_angle(POSE,sheet_obj)
+		shoot = Get_longArm_shootingAngle(POSE,sheet_obj)
+		prot = Get_longArm_protrusionDist(POSE,sheet_obj)
+		sheet_type = GetSheetType(sheet_obj,db)
+		base = sheet_obj.sheet_data['base_width']
+		long_arm = sheet_obj.sheet_data['long_arm_l']
+		short_arm = sheet_obj.sheet_data['short_arm_l']
+		sec_bulge = 0 if not sheet_obj.sheet_data["Second_bulge_E3"] else 1
+		main_bulge_curve = sheet_obj.sheet_data["E3_MainBulgeCurve"]
+		features_v = { 'dist':dist,'long_arm_ang':long_arm_ang,'shoot':shoot,\
+				'prot':prot,'sheet_type':sheet_type,'base':base,'long_arm':long_arm,\
+				'short_arm':short_arm,'sec_bulge':sec_bulge,'main_bulge_curve':main_bulge_curve }
+		#####################
 	
-	if not args.prefix:
-		prefix = ''
-	else:
-		prefix = args.prefix
-	prefix = randomword(8)+'_'+prefix
-	print("Prefix: %s Trial: %d"%(prefix,trial))
-	
-	POSE = pose_from_file( filename='%s/input.pdb'%db )
-	init_pose_len = POSE.size()
-	sheet_obj,success = CreateSheet(POSE,n_trials_sheet=25,sheet_type=sheet_type)
-	if not success:
-		continue
-	print('Yes, now filtering for outward-facing long arm')
-	Base_LArm_angle =  Get_SheetBase_longArm_angle(POSE,sheet_obj)
-	Dist_to_bulgeE6 = Get_SheetE6bulge_E3N_dist(POSE,sheet_obj)
-	if sheet_obj.sheet_data['CurvedLongArm']:
-		if sheet_obj.sheet_data["long_arm_l"] == 3:
-			if Base_LArm_angle > 60:
-				print('Sheet is outward-facing, discarding')
-				continue
-				#raise Exception('Sheet is outward-facing, discarding')
-		if sheet_obj.sheet_data["long_arm_l"] == 4:
-			if Base_LArm_angle > 50:
-				print('Sheet is outward-facing, discarding')
-				continue
-				#raise Exception('Sheet is outward-facing, discarding')
-			elif Dist_to_bulgeE6 > 29:
-				print('Sheet is outward-facing, discarding')
-				continue
-				#raise Exception('Sheet is outward-facing, discarding')
-	
-	### EXTRACT FEATURES: ###
-	dist = Get_SheetE6bulge_E3N_dist(POSE,sheet_obj)
-	long_arm_ang = Get_SheetBase_longArm_angle(POSE,sheet_obj)
-	shoot = Get_longArm_shootingAngle(POSE,sheet_obj)
-	prot = Get_longArm_protrusionDist(POSE,sheet_obj)
-	sheet_type = GetSheetType(sheet_obj,db)
-	base = sheet_obj.sheet_data['base_width']
-	long_arm = sheet_obj.sheet_data['long_arm_l']
-	short_arm = sheet_obj.sheet_data['short_arm_l']
-	sec_bulge = 0 if not sheet_obj.sheet_data["Second_bulge_E3"] else 1
-	main_bulge_curve = sheet_obj.sheet_data["E3_MainBulgeCurve"]
-	features_v = { 'dist':dist,'long_arm_ang':long_arm_ang,'shoot':shoot,'prot':prot,'sheet_type':sheet_type,'base':base,'long_arm':long_arm,'short_arm':short_arm,'sec_bulge':sec_bulge,'main_bulge_curve':main_bulge_curve }
-	#####################
-	
-	print('Sheet passed all filters, continuing with Ring')
-	dict_string = json.dumps(sheet_obj.sheet_data)
-	add_BeNTF2_dict_comment(POSE,dict_string)
-	core.pose.add_comment(POSE,"FEATURES",json.dumps(features_v))
-	#try: POSE.dump_file( '%ssheet_%d.pdb'%(prefix,trial) )
-	#except RuntimeError:
-	#	print('Unable to create file, skipping')
-	#	continue
+		print('Sheet passed all filters, continuing with Ring')
+		dict_string = json.dumps(sheet_obj.sheet_data)
+		add_BeNTF2_dict_comment(POSE,dict_string)
+		core.pose.add_comment(POSE,"FEATURES",json.dumps(features_v))
+		#try: POSE.dump_file( '%ssheet_%d.pdb'%(prefix,trial) )
+		#except RuntimeError:
+		#	print('Unable to create file, skipping')
+		#	continue
 
-	HP_len = [4]
-	if ExtendableRingHP(sheet_obj):
-		HP_len = [ 4, 6 ]
-		random.shuffle( HP_len )
-	allowed_loops = ParseConnections(POSE, sheet_obj)
-	loop_helix_tuples = []
-	allowed_helices = [ 10,11,14,15]
-	if len(allowed_helices) == 0:
-		core.pose.add_comment(POSE,"IMPOSSIBLE",json.dumps(features_v))
-		raise Exception('No helix is good for this strand!')
+		HP_len = [4]
+		if ExtendableRingHP(sheet_obj):
+			HP_len = [ 4, 6 ]
+			random.shuffle( HP_len )
+		allowed_loops = ParseConnections(POSE, sheet_obj)
+		loop_helix_tuples = []
+		allowed_helices = [ 10,11,14,15]
+		if len(allowed_helices) == 0:
+			core.pose.add_comment(POSE,"IMPOSSIBLE",json.dumps(features_v))
+			raise Exception('No helix is good for this strand!')
 
-	for loop in allowed_loops:
-		if loop in ['GBA','GB','BulgeAndB']:
-			allowed_helices = [ 11, 15 ]
-		if loop in ['BA','ClassicDirect','BBGB']:
-			allowed_helices = [ 10, 14 ]
-		for Hlen in allowed_helices:
-			loop_helix_tuples.append( (Hlen,loop) )
-	print(loop_helix_tuples)
-	#loop_helix_tuples = [ inv_ConnectionClasses_dict[int(con_class)] for con_class in possible_rings ]
+		for loop in allowed_loops:
+			if loop in ['GBA','GB','BulgeAndB']:
+				allowed_helices = [ 11, 15 ]
+			if loop in ['BA','ClassicDirect','BBGB']:
+				allowed_helices = [ 10, 14 ]
+			for Hlen in allowed_helices:
+				loop_helix_tuples.append( (Hlen,loop) )
+		print(loop_helix_tuples)
 
-	AllProcessedRecomendations = [ CreateRingsFromRecomendation([tup[1]],[tup[0]],HP_len,sheet_obj,db=db)[0] for tup in loop_helix_tuples]
-	#random.shuffle( AllProcessedRecomendations )
-	sheet_len = POSE.size()
-	POSE.data().clear()
-	print('Ring creation about to start, all combinations processed')
-	shuffle(AllProcessedRecomendations)
-	ring_obj = "dummy"
-	for Ring in AllProcessedRecomendations:
-		ring_obj = Ring
-		success = AssembleRing(POSE,Ring,ring_trials=25)
-		if not success: continue
-		break
+		AllProcessedRecomendations = [ CreateRingsFromRecomendation([tup[1]],[tup[0]],HP_len,sheet_obj,db=db)[0] for tup in loop_helix_tuples]
+		sheet_len = POSE.size()
+		POSE.data().clear()
+		print('Ring creation about to start, all combinations processed')
+		shuffle(AllProcessedRecomendations)
+		ring_obj = "dummy"
+		for Ring in AllProcessedRecomendations:
+			ring_obj = Ring
+			success = AssembleRing(POSE,Ring,ring_trials=25)
+			if not success: continue
+			break
 	
-	if sheet_len == POSE.size():
-		print('Reached last Ring type without making a Ring connection, going to next NSTRUCT')
-		continue
+		if sheet_len == POSE.size():
+			print('Reached last Ring type without making a Ring connection, going to next NSTRUCT')
+			continue
 		
-	ring_len = POSE.size()
-	POSE.data().clear()
+		ring_len = POSE.size()
+		POSE.data().clear()
 
-	dict_string = json.dumps(ring_obj.ring_dict)
-	add_BeNTF2_dict_comment(POSE,dict_string)
-	core.pose.add_comment(POSE,"FEATURES",json.dumps(features_v))
-	#try: POSE.dump_file( '%sRing_%d.pdb'%(prefix,trial) )
-	#except RuntimeError:
-	#	print('Unable to create file, skipping')
-	#	continue
+		dict_string = json.dumps(ring_obj.ring_dict)
+		add_BeNTF2_dict_comment(POSE,dict_string)
+		core.pose.add_comment(POSE,"FEATURES",json.dumps(features_v))
+		#try: POSE.dump_file( '%sRing_%d.pdb'%(prefix,trial) )
+		#except RuntimeError:
+		#	print('Unable to create file, skipping')
+		#	continue
 		
-	make_tropical_pitcher = False
-	tropical_capacity = RingCanBeTP_NTF2(POSE,ring_obj)
-	coin = [True,False,False] # 25% chance of being true
-	if tropical_capacity:
-		make_tropical_pitcher = random.choice(coin)
+		make_tropical_pitcher = False
+		tropical_capacity = RingCanBeTP_NTF2(POSE,ring_obj)
+		coin = [True,False,False] # 33% chance of being true
+		if tropical_capacity:
+			make_tropical_pitcher = random.choice(coin)
 	
-	BasicBeNTF2_obj = SetUpNtermStep(POSE, ring_obj, tropical = make_tropical_pitcher)
-	print('BeNTF2 completion about to start')
-	success = AssembleBasicBeNTF2(POSE,BasicBeNTF2_obj,trials=25)
-	if not success:
-		continue
+		BasicBeNTF2_obj = SetUpNtermStep(POSE, ring_obj, tropical = make_tropical_pitcher)
+		print('BeNTF2 completion about to start')
+		success = AssembleBasicBeNTF2(POSE,BasicBeNTF2_obj,trials=25)
+		if not success:
+			continue
 
-	add_CH_if_possible = random.choice(coin)
-	if make_tropical_pitcher:
-		success = AddCtermHelix(BasicBeNTF2_obj,BasicNTF2_pose=POSE,trials=25)
-	elif  NTF2CanHaveCTermH(POSE, BasicBeNTF2_obj) and add_CH_if_possible:
-		success = AddCtermHelix(BasicBeNTF2_obj,BasicNTF2_pose=POSE,trials=25)
-	if not success:
-		continue
+		add_CH_if_possible = random.choice(coin)
+		if make_tropical_pitcher:
+			success = AddCtermHelix(BasicBeNTF2_obj,BasicNTF2_pose=POSE,trials=25)
+		elif  NTF2CanHaveCTermH(POSE, BasicBeNTF2_obj) and add_CH_if_possible:
+			success = AddCtermHelix(BasicBeNTF2_obj,BasicNTF2_pose=POSE,trials=25)
+		if not success:
+			continue
 
-	if make_tropical_pitcher and not TP_is_viable(POSE,BasicBeNTF2_obj):
-		# If this is a TP, but it has no opening at the top, dicard.
-		continue
-	POSE.data().clear()
-	dict_string = json.dumps(BasicBeNTF2_obj.NTF2_dict)
-	add_SS_labels(POSE,BasicBeNTF2_obj)
-	add_BeNTF2_dict_comment(POSE,dict_string)
-	pocket_positions = detect_pocket_residues(POSE,BasicBeNTF2_obj)
-	add_pocket_labels(POSE,pocket_positions)
-	add_SS_positions(POSE,BasicBeNTF2_obj)
-	core.pose.add_comment(POSE,"FEATURES",json.dumps(features_v))
-	try: POSE.dump_file( '%sBasicBeNTF2_designed_%d.pdb'%(prefix,trial) )
-	except RuntimeError:
-		print('Unable to create file, skipping')
-		continue
+		if make_tropical_pitcher and not TP_is_viable(POSE,BasicBeNTF2_obj):
+			# If this is a TP, but it has no opening at the top, dicard.
+			continue
+		POSE.data().clear()
+		dict_string = json.dumps(BasicBeNTF2_obj.NTF2_dict)
+		add_SS_labels(POSE,BasicBeNTF2_obj)
+		add_BeNTF2_dict_comment(POSE,dict_string)
+		pocket_positions = detect_pocket_residues(POSE,BasicBeNTF2_obj)
+		add_pocket_labels(POSE,pocket_positions)
+		add_SS_positions(POSE,BasicBeNTF2_obj)
+		core.pose.add_comment(POSE,"FEATURES",json.dumps(features_v))
+		try: POSE.dump_file( '%sBasicBeNTF2_designed_%d.pdb'%(prefix,trial) )
+		except RuntimeError:
+			print('Unable to create file, skipping')
+			continue
 
