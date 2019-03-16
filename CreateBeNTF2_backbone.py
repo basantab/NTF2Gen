@@ -206,7 +206,7 @@ def AddCtermHelix(BasicBeNTF2_obj,BasicNTF2_pose=None,trials=25,\
 		os.remove(CH_BeNTF2_bpCST_name)
 		return False
 	else:
-		if basic_len == POSE.size() or (mover_from_XML.get_last_move_status() in failed_mover_statuses ) :
+		if basic_len == BasicNTF2_pose.size() or (mover_from_XML.get_last_move_status() in failed_mover_statuses ) :
 			print('Unable to create this C term helix')
 			os.remove(CH_BeNTF2_bp_name)
 			os.remove(CH_BeNTF2_bpCST_name)

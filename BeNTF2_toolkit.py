@@ -269,8 +269,8 @@ class NTF2_sheet():
 			self.update_sheet_data()
 			self.blueprint = self.produce_bp()
 			self.csts = self.produce_csts()
-		else:
-			print("Sheet won't be validated, remember to update_sheet_data(), self.blueprint = self.produce_bp() and self.csts = self.produce_csts() once sheet is validated")
+		#else:
+			#print("Sheet won't be validated, remember to update_sheet_data(), self.blueprint = self.produce_bp() and self.csts = self.produce_csts() once sheet is validated")
 
 	def __init__(self, arch_dist=None, base_width = None, long_arm_l = None, short_arm_l = None, Second_bulge_E3 = None,\
 	Second_b_place = None, E3_MainBulgeCurve = None, E3_SecBulgeCurve = None, ExtendedE6 = None, ExtendedE4 = None, validate_sheet=True, CurvedLongArm=False):

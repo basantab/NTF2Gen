@@ -1,19 +1,21 @@
 <ROSETTASCRIPTS>
     <SCOREFXNS>
 	<ScoreFunction name="CENTROID" weights="fldsgn_cen" symmetric="0" >
+                <Reweight scoretype="rg" weight="0.0" />
 		<Reweight scoretype="hbond_lr_bb" weight="1.75" />
                 <Reweight scoretype="hbond_sr_bb" weight="1.0" />
                 <Reweight scoretype="atom_pair_constraint" weight="1.0" />
                 <Reweight scoretype="angle_constraint" weight="1.0" />
                 <Reweight scoretype="dihedral_constraint" weight="0.1" />
                 <Reweight scoretype="omega" weight="1.5" />
-                <Reweight scoretype="rama" weight="1.15" />
+                <Reweight scoretype="rama" weight="1.5" />
 	</ScoreFunction>
 	<!-- ScoreFunction name="CENTROID" weights="fldsgn_cen" symmetric="0" /-->
 	<ScoreFunction name="min_cart" weights="%%remodel_cen%%" >
+                <Reweight scoretype="rg" weight="0.0" />
                 <Reweight scoretype="hbond_sr_bb" weight="1.75" />
                 <Reweight scoretype="hbond_lr_bb" weight="1.75" />
-                <Reweight scoretype="rama" weight="1.15" />
+                <Reweight scoretype="rama" weight="1.5" />
                 <Reweight scoretype="omega" weight="1.5" />
                 <Reweight scoretype="atom_pair_constraint" weight="1.0" />
                 <Reweight scoretype="coordinate_constraint" weight="1.0" />
