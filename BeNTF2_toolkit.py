@@ -22,10 +22,10 @@ def get_base_width(bp):
 	B1_A_pos = [ i[0] for i in bp.segment_dict['E3'].bp_data if i[2]=='EA'][0]
 	E3_len = len(bp.segment_dict['E3'].bp_data)
 	E4_len = len(bp.segment_dict['E4'].bp_data)
-	
+
 	last_pos_E3 = bp.segment_dict['E3'].bp_data[-1][0]
 	B2_A_pos = [ i[0] for i in bp.segment_dict['E6'].bp_data if i[2]=='EA'][0]
-	
+
 	E6_init = bp.segment_dict['E6'].bp_data[0][0]
 	E4_E5_RS = int([i[3] for i in bp.sspairs if i[0]=='4' and i[1]=='5'][0])
 	E5_len = len(bp.segment_dict['E5'].bp_data)
@@ -188,7 +188,7 @@ class NTF2_sheet():
 			self.sheet_data["Validated"] = True
 		else:
 			self.sheet_data["Validated"] = False
-		
+
 	def soft_reset_sheet(self):
 		self.base_width = self.saved_input["base_width"]
 		self.long_arm_l = self.saved_input["long_arm_l"]
@@ -200,11 +200,11 @@ class NTF2_sheet():
 		self.ExtendedE6 = self.saved_input["ExtendedE6"]
 		self.ExtendedE4 = self.saved_input["ExtendedE4"]
 		self.CurvedLongArm = self.saved_input["CurvedLongArm"]
-		
+
 		self.csts = None
 		self.pairings = None
 		self.blueprint = None
-	
+
 	def update_sheet_data(self):
 		self.sheet_data["base_width"] = self.base_width
 		self.sheet_data["long_arm_l"] = self.long_arm_l
@@ -265,14 +265,14 @@ class NTF2_sheet():
 				print( "Initialization failed, some parameters are incompatible, trying again, but check the problem is not in the input values")
 				self.soft_reset_sheet()
 				self.create_sheet(validate=True)
-		
+
 			self.update_sheet_data()
 			self.blueprint = self.produce_bp()
 			self.csts = self.produce_csts()
 		else:
 			print("Sheet won't be validated, remember to update_sheet_data(), self.blueprint = self.produce_bp() and self.csts = self.produce_csts() once sheet is validated")
-		
-	def __init__(self, base_width = None, long_arm_l = None, short_arm_l = None, Second_bulge_E3 = None,\
+
+	def __init__(self, arch_dist=None, base_width = None, long_arm_l = None, short_arm_l = None, Second_bulge_E3 = None,\
 	Second_b_place = None, E3_MainBulgeCurve = None, E3_SecBulgeCurve = None, ExtendedE6 = None, ExtendedE4 = None, validate_sheet=True, CurvedLongArm=False):
 		#print("Creating NTF2")
 		self.saved_input={
@@ -287,7 +287,7 @@ class NTF2_sheet():
 		"ExtendedE4" : ExtendedE4, \
 		"CurvedLongArm" : CurvedLongArm \
 		}
-		
+
 		self.sheet_data = {}
 		self.base_width = base_width # Relative separation between E3 bulge and E5 bulge
 		self.long_arm_l = long_arm_l # Length of long arm: 1+2*X aas, or 2*(X+1) if there is an additional bulge
@@ -303,6 +303,8 @@ class NTF2_sheet():
 		self.pairings = None
 		self.blueprint = None
 		self.csts = None
+
+		self.arch_dist = arch_dist
 		if validate_sheet:
 			self.create_sheet(validate=True)
 		else:
@@ -341,7 +343,7 @@ class NTF2_sheet():
 		self.blueprint = None
 		self.csts = None
 		self.create_sheet()
-	
+
 	def hard_reset_sheet(self):
 		self.saved_input={
 		"base_width" : None, \
@@ -355,7 +357,7 @@ class NTF2_sheet():
 		"ExtendedE4" : None, \
 		"CurvedLongArm" : None \
 		}
-		
+
 		self.base_width = None
 		self.long_arm_l = None
 		self.short_arm_l = None
@@ -366,7 +368,7 @@ class NTF2_sheet():
 		self.ExtendedE6 = None
 		self.ExtendedE4 = None
 		self.CurvedLongArm = None
-		
+
 		self.csts = None
 		self.pairings = None
 		self.blueprint = None
@@ -378,6 +380,8 @@ class NTF2_sheet():
 		E6 = self.blueprint.segment_dict['E4']
 		E6Bulge_A = E6.bp_data[E6_bulge_INDEX_from_N][0]+1
 		CST_Longest_arch_dist = "AtomPair CA %i CA %i FLAT_HARMONIC 16.0 3.0 9.0"%(E3N,E6Bulge_A)
+		if self.arch_dist:
+			CST_Longest_arch_dist = "AtomPair CA %i CA %i HARMONIC %0.2f 3.0"%(E3N,E6Bulge_A,self.arch_dist)
 		# E3 main curvature
 		if self.ExtendedE4:
 			relative_MainE4_curve_center = self.base_width + 2
@@ -393,22 +397,22 @@ class NTF2_sheet():
 		# Add lines for actual cst string
 		CST_line_MainE4 = "Angle CA %d CA %d CA %d HARMONIC %0.2f %0.2f" \
 		%(MainE4_curve_root_1,MainE4_curve_center,MainE4_curve_root_2,mean_angle_value,std_dev)
-		#
-		
+
+
 		E4_len = len(self.blueprint.segment_dict['E2'].bp_data)
 		relative_MainE5_curve_center = E4_len - relative_MainE4_curve_center - 2
 		MainE5_curve_center = self.blueprint.segment_dict['E3'].bp_data[relative_MainE5_curve_center][0]
 		MainE5_curve_root_1 = MainE5_curve_center - 2
 		MainE5_curve_root_2 = MainE5_curve_center + 2
-		
+
 		#
 		# Add lines for actual cst string
 		CST_line_MainE5 = "Angle CA %d CA %d CA %d HARMONIC %0.2f %0.2f" \
 		%(MainE5_curve_root_1,MainE5_curve_center,MainE5_curve_root_2,mean_angle_value,std_dev)
 		#
-		
+
 		CST_RETURN_LIST = [CST_line_MainE4, CST_line_MainE5, CST_Longest_arch_dist]
-		
+
 		# E3 secondary curvature if applicable:
 		if self.Second_bulge_E3:
 			mean_angle_value = math.radians(165 - self.E3_SecBulgeCurve*10)
@@ -418,7 +422,7 @@ class NTF2_sheet():
 			SecE4_curve_center = self.blueprint.segment_dict['E2'].bp_data[relative_SecE4_curve_center-1][0]
 			SecE4_curve_root_1 = SecE4_curve_center - 2
 			SecE4_curve_root_2 = SecE4_curve_center + 2
-			
+
 			#
 			# Add lines for actual cst string
 			CST_line_SecE4 = "Angle CA %d CA %d CA %d HARMONIC %0.2f %0.2f" \
@@ -433,7 +437,7 @@ class NTF2_sheet():
 			SecE5_curve_root_2 = SecE5_curve_center + 2
 			CST_line_SecE5 = "Angle CA %d CA %d CA %d HARMONIC %0.2f %0.2f" \
 			%(SecE5_curve_root_1,SecE5_curve_center,SecE5_curve_root_2,mean_angle_value,std_dev)
-			
+
 			CST_RETURN_LIST.append(CST_line_SecE5)
 		###################################
 
@@ -447,13 +451,13 @@ class NTF2_sheet():
 			SecE3_curve_root_1 = self.blueprint.segment_dict['E1'].bp_data[0][0]
 			#SecE3_curve_root_2 = SecE3_curve_center + 2
 			SecE3_curve_root_2 = SecE3_curve_center + 4
-			
-			
+
+
 			CST_line_SecE3 = "Angle CA %d CA %d CA %d HARMONIC %0.2f %0.2f" \
 			%(SecE3_curve_root_1,SecE3_curve_center,SecE3_curve_root_2,mean_angle_value,std_dev)
 			#
 			CST_RETURN_LIST.append(CST_line_SecE3)
-			
+
 			# Now for E4:
 			relative_SecE4_curve_center = relative_MainE4_curve_center + 5 # +4
 			SecE4_curve_center = self.blueprint.segment_dict['E2'].bp_data[relative_SecE4_curve_center-1][0]
@@ -482,21 +486,21 @@ class NTF2_sheet():
 			%(SecE5_curve_root_1,SecE5_curve_center,SecE5_curve_root_2,mean_angle_value,std_dev)
 			#
 			CST_RETURN_LIST.append(CST_line_SecE5)
-			
+
 			'''
 			# DIHEDRAL:
 			second_to_last_E6 = self.blueprint.bp_data[-2][0]
 			pre_Mainbulge = self.sheet_data['main_bulge_E3_pos'] - 1
 			second_res = 2
 			first_res_E5 = self.blueprint.segment_dict['E3'].bp_data[0][0]
-			
+
 			mean_dihedral_value =  math.radians(80)
 
 			CST_line_DIH = "Dihedral CA %d CA %d CA %d CA %d HARMONIC %0.2f %0.2f" \
 			%(second_to_last_E6,pre_Mainbulge,second_res,first_res_E5,mean_dihedral_value,std_dev)
-			
+
 			if (self.long_arm_l == 4):
-				relative_SecE5_curve_center = E4_len - relative_SecE4_curve_center -2 # keep at the same level?? Yes, works better. 
+				relative_SecE5_curve_center = E4_len - relative_SecE4_curve_center -2 # keep at the same level?? Yes, works better.
 				SecE5_curve_center = self.blueprint.segment_dict['E3'].bp_data[relative_SecE5_curve_center][0]
 				SecE5_curve_root_1 = SecE5_curve_center - 2
 				SecE5_curve_root_2 = SecE5_curve_center + 2
@@ -540,20 +544,20 @@ class NTF2_sheet():
 		# Segment creation
 		L1 = Segment('L1','L',[[1,'A','LX','.']])
 		segments = [L1]
-		
+
 		E1 = Segment('E1','E',[[i+1,'A','EB','.'] for i in range(E3_l)])
 		# E3 bulge placemanets
 		if self.ExtendedE4:
 			main_bulge_pos_from_C = -1*(self.base_width)-3
 		else:
 			main_bulge_pos_from_C = -1*(self.base_width)-1
-		
+
 		E1.bp_data[main_bulge_pos_from_C][2] = 'EA'
 
 		if self.Second_bulge_E3 :
 			second_bulge_position_from_C = main_bulge_pos_from_C - ( 2*self.Second_b_place + 3 )
 			E1.bp_data[second_bulge_position_from_C][2] = 'EA'
-		
+
 		segments += [E1]
 		L2 = Segment('L2','L',[[1,'A','LX','.'],[2,'A','LX','.']])
 		segments += [L2]
@@ -571,7 +575,7 @@ class NTF2_sheet():
 			L4 = Segment('L4','L',[[1,'A','LX','.'],[2,'A','LX','.']])
 		segments += [L4]
 		# E6
-		E4 = Segment('E4','E',[[i+1,'A','EB','.'] for i in range(E6_l)])	
+		E4 = Segment('E4','E',[[i+1,'A','EB','.'] for i in range(E6_l)])
 		# E6 bulge placemanets
 		E6_bulge_INDEX_from_N = 2*(self.short_arm_l)
 		E4.bp_data[E6_bulge_INDEX_from_N][2] = 'EA'
@@ -583,7 +587,7 @@ class NTF2_sheet():
 		bp.reindex_blueprint()
 		self.sheet_data["main_bulge_E6_pos"] = bp.segment_dict['E4'].bp_data[E6_bulge_INDEX_from_N][0]
 		self.sheet_data["main_bulge_E3_pos"] = bp.segment_dict['E1'].bp_data[main_bulge_pos_from_C][0]
-		
+
 		def aux_get_MainBulge_hinges(bp):
 			if self.ExtendedE4:
 				relative_MainE4_curve_center = self.base_width + 2
@@ -591,8 +595,8 @@ class NTF2_sheet():
 				relative_MainE4_curve_center = self.base_width
 			E4_len = len(bp.segment_dict['E2'].bp_data)
 			relative_MainE5_curve_center = E4_len - relative_MainE4_curve_center - 1
-			return (relative_MainE4_curve_center,relative_MainE5_curve_center)	
-		
+			return (relative_MainE4_curve_center,relative_MainE5_curve_center)
+
 		def aux_get_SecBulge_hinges(bp):
 			E4_len = len(bp.segment_dict['E2'].bp_data)
 			positions = aux_get_MainBulge_hinges(bp)
@@ -640,13 +644,13 @@ class NTF2_sheet():
 		relative_SecE4_curve_center = relative_MainE4_curve_center + 4
 		#SecE4_curve_center = self.blueprint.segment_dict['E2'].bp_data[relative_SecE4_curve_center-1][0]
 		return relative_SecE4_curve_center
-	
+
 	def write_blueprint(self,fname=None):
 		if not fname:
 			fname = './sheet.bp'
 		sspairs_str = "SSPAIR "+";".join(self.pairings)
 		self.blueprint.dump_blueprint(fname,[sspairs_str])
-	
+
 	def write_cstfile(self,fname=None):
 		if not fname:
 			fname = './angle.csts'
@@ -654,7 +658,7 @@ class NTF2_sheet():
 		for line in self.csts:
 			outfile.write(line+'\n')
 		outfile.close()
-	
+
 	def get_Tomponents_flags_dict(self):
 		tomponents_dict = {'E3_l':self.sheet_data["E3_l"]}
 		tomponents_dict['E4_l'] = self.sheet_data["E4_l"]
@@ -675,7 +679,7 @@ class NTF2_sheet():
 		tomponents_dict["RS_3"] = "%d"%self.sheet_data["pairings"]["SSPAIR_5_6"]
 
 		return tomponents_dict
-	
+
 	def write_Tomponents_flags(self,fname=None):
 		if not fname:
 			fname = './tomponents.vals'
@@ -692,7 +696,7 @@ class NTF2_sheet():
 			sec_E3_bulge_relative = self.sheet_data["sec_bulge_E3_pos"] - E3_n + 1
 			outfile.write("-parser:script_vars BulgeE3_str=%d,%d \n"%(main_E3_bulge_relative,sec_E3_bulge_relative) )
 		else:
-			
+
 			outfile.write("-parser:script_vars BulgeE3_str=%d \n"%main_E3_bulge_relative )
 		outfile.write("-parser:script_vars RS_1=%d \n"%self.sheet_data["pairings"]["SSPAIR_3_4"])
 		outfile.write("-parser:script_vars RS_2=%d \n"%(-1*self.sheet_data["pairings"]["SSPAIR_4_5"]))
@@ -809,7 +813,7 @@ class RingConnection():
 	Connection_types = ['BA','GBA','GB','ClassicDirect','BulgeAndB','BBGB']
 
 	def generate_bp(self):
-		
+
 		if self.connection_type == 'BulgeAndB':
 			# Make 2 first residues remodel
 			self.ring_bp.bp_data[0][-1] = 'R'
@@ -823,7 +827,7 @@ class RingConnection():
 			self.ring_bp.bp_data.insert(0,[0,'A','LG','R'])
 			for i in range(self.h_len):
 				self.ring_bp.bp_data.insert(0,[0,'A','HA','R'])
-		
+
 		if self.connection_type == 'BA': # This is a "Classic Bulge"
 			# Make 2 first residues remodel
 			self.ring_bp.bp_data[0][-1] = 'R'
@@ -873,7 +877,7 @@ class RingConnection():
 			self.ring_bp.bp_data[0][-2] = 'LB'
 			self.ring_bp.bp_data.insert(0,[0,'A','LG','R'])
 			for i in range(self.h_len):
-				self.ring_bp.bp_data.insert(0,[0,'A','HA','R'])	
+				self.ring_bp.bp_data.insert(0,[0,'A','HA','R'])
 		if self.connection_type == 'BBGB':
 			self.ring_bp.bp_data[0][-1] = 'R'
 			self.ring_bp.bp_data[1][-1] = 'R'
@@ -883,7 +887,7 @@ class RingConnection():
 			self.ring_bp.bp_data.insert(0,[0,'A','LB','R'])
 			self.ring_bp.bp_data.insert(0,[0,'A','LB','R'])
 			for i in range(self.h_len):
-				self.ring_bp.bp_data.insert(0,[0,'A','HA','R'])	
+				self.ring_bp.bp_data.insert(0,[0,'A','HA','R'])
 		if self.connection_type == 'GAA':
 			self.ring_bp.bp_data[0][-1] = 'R'
 			self.ring_bp.bp_data[1][-1] = 'R'
@@ -928,7 +932,7 @@ class RingConnection():
 		self.pairings.append(hairpin_pairing_string)
 		#self.ring_bp.freeze_all()
 		#self.ring_bp.reindex_blueprint()
-	
+
 	def populate_ring_dict(self):
 		self.ring_dict ={
 		'h_len':self.h_len, \
@@ -981,9 +985,9 @@ class RingConnection():
 	def dump_all_csts(self,fname=None):
 		bp = Blueprint(data=[ [ x for x in i ] for i in self.ring_bp.bp_data ] )
 		bp.reindex_blueprint()
-	
+
 		cst_string = ''
-		
+
 		if self.connection_type=='ClassicBulge':
 			hbond1_don = bp.segment_dict['E3'].bp_data[0][0]
 			hbond1_acc = bp.segment_dict['E4'].bp_data[-2][0]
@@ -1102,7 +1106,7 @@ def CreateSheetObjFromDict(sheet_data_dict):
 	dummy_dict = {}
 	for i in NTF2_sheet.sheet_atributes_Dict.keys():
 		dummy_dict[i] = sheet_data_dict[i]
-   
+
 	return NTF2_sheet(**dummy_dict)
 
 def CreateRingObjFromDict(ring_data_dict,db=None):
@@ -1168,7 +1172,7 @@ def CreateAllPossibleSheetDicts():
 										continue
 									if sheet.sheet_data["Validated"]:
 										all_sheet_types.append(current)
-	return [ i for i in enumerate(all_sheet_types,start=1) ]	
+	return [ i for i in enumerate(all_sheet_types,start=1) ]
 
 def ExtendableRingHP(sheet_obj):
 	extedable_base3_sheet = ( sheet_obj.sheet_data['base_width'] == 3 ) and sheet_obj.sheet_data['ExtendedE6']
@@ -1183,9 +1187,9 @@ def ParseConnections(sheet_pose, sheet_obj):
 		return ['BA','ClassicDirect']
 	else:
 		return ['BA','GBA','GB','ClassicDirect','BulgeAndB','BBGB']
-	
+
 def AutomaticRingRecomendation(sheet_pose, sheet_obj,db=None):
-	
+
 	ResultDB_fname = '%s/FinalTable.tab'%db
 	ResultDB = pnd.read_csv(ResultDB_fname,delim_whitespace=True,index_col=0)
 	type_list = list(set([ i for i in ResultDB.index]))
@@ -1193,10 +1197,10 @@ def AutomaticRingRecomendation(sheet_pose, sheet_obj,db=None):
 	for Sheet_type in type_list:
 		ConnectionStatsDict[Sheet_type] = [(i,sum(ResultDB.get_value(Sheet_type,col=i))) for i in list(ResultDB.columns)[1:]]
 	sheet_type = GetSheetType(sheet_obj,db)
-	
+
 	#recomended_connections = [ i[0] for i in sorted(ConnectionStatsDict[sheet_type],key=lambda x: x[1],reverse=True) if i[1]!=0 ]
 	recomended_connections = ['BABAB','BulgeAndB','ABG','ClassicDirect','BBB','ClassicBulge']
-	
+
 	protrusion = Get_longArm_protrusionDist(sheet_pose,sheet_obj)
 	bulge6_dist = Get_SheetE6bulge_E3N_dist(sheet_pose,sheet_obj)
 	if 'BAG' in recomended_connections: recomended_connections.remove('BAG')
@@ -1230,7 +1234,7 @@ def AutomaticRingRecomendation(sheet_pose, sheet_obj,db=None):
 	return (recomended_connections,HelixChoise,hp_len)
 
 def CreateRingsFromRecomendation(recomended_connections,HelixChoises,hp_lens,sheet_obj,db):
-	# sheet_pose, sheet_obj, h_len = None, loopOneABEGO = 'E', hairpin_len = 
+	# sheet_pose, sheet_obj, h_len = None, loopOneABEGO = 'E', hairpin_len =
 	connection_vector =  []
 	for H_len in HelixChoises:
 		for Conn in recomended_connections:
@@ -1247,7 +1251,7 @@ class BasicBeNTF2():
 			self.NTF2_bp.bp_data[i][-1] = 'R'
 		# add residues to H2 if >7
 		ad_hoc_vector = []
-		
+
 		for i in range(self.h2_len - 7):
 			ad_hoc_vector.append([0,'A','HA','R'])
 		# Create H1
@@ -1261,11 +1265,11 @@ class BasicBeNTF2():
 				self.NTF2_bp.bp_data[0][-2] = '%s'%(i[2])
 			else:
 				self.NTF2_bp.bp_data.insert(0,i)
-		
+
 		for i in range(self.h1_len):
 			self.NTF2_bp.bp_data.insert(0,[0,'A','HA','R'])
 		self.NTF2_bp.bp_data.insert(0,[0,'A','LX','R'])
-		
+
 		# Remodel Short arm:
 		# Get E6 bulge pos:
 		#E6B_rel = 0
@@ -1276,7 +1280,7 @@ class BasicBeNTF2():
 		#		E6B_rel = i+1
 		#		E6B_abs = res[0]
 		#		break
-		
+
 		#RemodelStretchLength = 2*E6B_rel + 2
 		#Startpos = E6B_abs - 2*E6B_rel - 1
 		#for n,i in enumerate(self.NTF2_bp.bp_data):
@@ -1319,13 +1323,13 @@ class BasicBeNTF2():
 		self.has_cHelix = chelix
 		self.c_helix_dict = {}
 		self.populate_NTF2_dict()
-	
+
 	def write_blueprint(self,fname=None):
 		if not fname:
 			fname = './NTF2.bp'
 		sspairs_str = "SSPAIR "+";".join(self.NTF2_dict['ring_dict']['pairings'])
 		self.NTF2_bp.dump_blueprint(fname,[sspairs_str])
-		
+
 	def get_min_fix_res(self):
 		'''
 		Get the residues to fix during minimization step.
@@ -1345,10 +1349,10 @@ class BasicBeNTF2():
 				R_prev = True
 		if self.NTF2_bp.bp_data[-1][-1] != 'R':
 			switch_pos.append(len(self.NTF2_bp.bp_data))
-		
+
 		if len(switch_pos)%2 !=0:
 			raise ValueError('The intervals for fixing residues are not paired, something went wrong: see: '+','.join(switch_pos))
-		
+
 		return switch_pos
 
 	def get_noPro_posL2(self):
@@ -1358,7 +1362,7 @@ class BasicBeNTF2():
 		l3c = bp.segment_dict['L3'].bp_data[-1][0]
 		h3n = bp.segment_dict['H3'].bp_data[0][0]
 		return "%d,%d,%d"%(l3n,l3c,h3n)
-		
+
 	def create_helix_csts(self,fname=None):
 		bp = Blueprint(data=[ [ x for x in i ] for i in self.NTF2_bp.bp_data ] )
 		bp.reindex_blueprint()
@@ -1399,7 +1403,7 @@ class BasicBeNTF2():
 		hbondH1_acc = bp.segment_dict['H1'].bp_data[-3][0]
 		hbondH1_don = bp.segment_dict['L2'].bp_data[0][0]
 		cst_string += "AtomPair N %i O %i HARMONIC 3.0 0.5\n" %(hbondH1_don,hbondH1_acc)
-	
+
 		if not fname:
 			fname = './NTF2.csts'
 		handle = open(fname,'a')
@@ -1495,7 +1499,7 @@ class BasicBeNTF2():
 		self.create_HBond_csts(fname=min_fname)
 		self.create_H1C_csts(fname=min_fname)
 		self.create_H1N_csts(fname=min_fname)
-	
+
 	def get_long_arm_inward_pos(self):
 		bp = Blueprint(data=[ [ x for x in i ] for i in self.NTF2_bp.bp_data ] )
 		bp.reindex_blueprint()
@@ -1507,7 +1511,7 @@ class BasicBeNTF2():
 			E4 = E4-2
 			E5 = E5+2
 			positions = positions + [E4,E5]
-		
+
 		return positions
 	def get_H1_positions(self):
 		bp = Blueprint(data=[ [ x for x in i ] for i in self.NTF2_bp.bp_data ] )
@@ -1522,7 +1526,7 @@ class BasicBeNTF2():
 		H3_all = bp.segment_dict['H3'].bp_data
 		positions = [ i[0] for i in H3_all ]
 		return positions
-	
+
 	def get_H4_positions(self):
 		bp = Blueprint(data=[ [ x for x in i ] for i in self.NTF2_bp.bp_data ] )
 		bp.reindex_blueprint()
@@ -1591,13 +1595,13 @@ def CreateBasicNTF2fromDict(NTF2dict,NTF2_is_complete=True,db=None):
 		# Disposable object just to correctly populate C-term H blueprint
 		disposable_obj = SetUpCHelixStep(NTF2_obj)
 	return NTF2_obj
-		
-	
+
+
 def Get_E5Bulge_longArm_dist(ring_pose, ring_obj):
 
 	ring_bp = Blueprint(data=[ [ x for x in i ] for i in ring_obj.ring_bp.bp_data ] )
 	ring_bp.reindex_blueprint()
-	
+
 	E6_bulge_pos = [ i[0] for i in ring_bp.segment_dict['E6'].bp_data if i[2] == 'EA' ][0]
 	E3_N_pos = ring_bp.segment_dict['E3'].bp_data[1][0]
 	H3_C_pos = ring_bp.segment_dict['H2'].bp_data[-3][0]
@@ -1615,15 +1619,15 @@ def Get_E5Bulge_longArm_dist(ring_pose, ring_obj):
 def Get_CrossSheet_dist(ring_pose, ring_obj):
 	ring_bp = Blueprint(data=[ [ x for x in i ] for i in ring_obj.ring_bp.bp_data ] )
 	ring_bp.reindex_blueprint()
-	
+
 	#E3_N_pos = ring_bp.segment_dict['E3'].bp_data[0][0]
 	H3_C_pos = ring_bp.segment_dict['H2'].bp_data[-1][0]
 	E3_C_pos = ring_bp.segment_dict['E3'].bp_data[-1][0]
-	
+
 	#E3_N_CA = ring_pose.residue(E3_N_pos).xyz('CA')
 	H3_C_CA = ring_pose.residue(H3_C_pos).xyz('CA')
 	E3_C_CA = ring_pose.residue(E3_C_pos).xyz('CA')
-	
+
 	#distance_v = E3_N_CA - E3_C_CA
 	distance_v = H3_C_CA - E3_C_CA
 	distance = distance_v.length()
@@ -1649,7 +1653,7 @@ def Get_HP_longArm_dist(ring_pose, ring_obj):
 def Get_E6_C_E5_N_dist(ring_pose, ring_obj):
 	ring_bp = Blueprint(data=[ [ x for x in i ] for i in ring_obj.ring_bp.bp_data ] )
 	ring_bp.reindex_blueprint()
-	
+
 	#E3_N_pos = ring_bp.segment_dict['E3'].bp_data[0][0]
 	E5_N_pos = ring_bp.segment_dict['E5'].bp_data[0][0]
 	E6_C_pos = ring_bp.segment_dict['E6'].bp_data[-1][0]
@@ -1727,7 +1731,7 @@ def SetUpNtermStep(ring_pose, ring_obj, tropical = False, chelix = False):
 			chelix = True
 			H2_len = 7
 			H1_length = 14
-		
+
 	if not tropical:
 		Opening_type = 'Classic'
 		# C helix check:
@@ -1742,13 +1746,13 @@ def SetUpNtermStep(ring_pose, ring_obj, tropical = False, chelix = False):
 			H2_len = 7
 		print('cross_sheet_dist: %0.4f'%cross_sheet_dist)
 		#H1_length = int( round( (cross_sheet_dist/5.4)*3.6 - 3.0) )
-		
+
 		H1_length = 16 + ( H2_len-7 ) + 3
-	
+
 	return BasicBeNTF2(ring_obj, ring_pose = ring_pose , h1_len = H1_length, loopTwoABEGO = 'GB', h2_len = H2_len, Opening=Opening_type, protrusion=protrusion , chelix = chelix)
 
 class NTF2_CTermHelix():
-	
+
 	def build_bp(self,fname = None):
 		if not self.is_tropical_pitcher:
 			bp = self.basic_NTF2_obj.NTF2_bp
@@ -1772,19 +1776,19 @@ class NTF2_CTermHelix():
 				bp.bp_data.append([0,'A','HA','R'])
 			bp.bp_data.append([0,'A','LX','R'])
 		return self.basic_NTF2_obj.NTF2_bp
-	
+
 	def write_bp(self,fname = None):
 		if not fname:
 			fname = './CH_NTF2.bp'
 		sspairs_str = "SSPAIR "+";".join(self.basic_NTF2_obj.NTF2_dict['ring_dict']['pairings'])
 		self.basic_NTF2_obj.NTF2_bp.dump_blueprint(fname,[sspairs_str])
-	
+
 	def get_no_pro(self):
 		bp = Blueprint(data=[ [ x for x in i ] for i in self.basic_NTF2_obj.NTF2_bp.bp_data ] )
 		bp.reindex_blueprint()
 		pos = bp.segment_dict['L10'].bp_data[-1][0]
 		return pos
-		
+
 	def create_csts(self,fname = None):
 		bp = Blueprint(data=[ [ x for x in i ] for i in self.basic_NTF2_obj.NTF2_bp.bp_data ] )
 		bp.reindex_blueprint()
@@ -1825,7 +1829,7 @@ class NTF2_CTermHelix():
 			hbond1_don = bp.segment_dict['L10'].bp_data[-1][0]
 			pairings = self.basic_NTF2_obj.NTF2_dict['ring_dict']['sheet_dict']['pairings']
 			pairing_5_6 = pairings["SSPAIR_5_6"]
-			hbond1_acc_relative = pairings["SSPAIR_5_6"] - 1 
+			hbond1_acc_relative = pairings["SSPAIR_5_6"] - 1
 			hbond1_acc = bp.segment_dict['E5'].bp_data[hbond1_acc_relative][0]
 			cst_string += CircularHBondConstraints(hbond1_don,hbond1_acc)
 		# Straight helix csts
@@ -1849,7 +1853,7 @@ class NTF2_CTermHelix():
 				'cst_lines':self.cst_lines \
 				}
 		return ch_dict
-		
+
 	def __init__(self, basic_NTF2_obj, basic_NTF2_pose = None , h_len = 8, loopABEGO = 'B' ):
 		self.loopABEGO = loopABEGO
 		self.h_len = h_len
@@ -1864,15 +1868,19 @@ class NTF2_CTermHelix():
 		#self.create_csts()
 		self.ch_dict = self.populate_Ch_dict()
 		self.basic_NTF2_obj.NTF2_dict['c_helix_dict'] = self.ch_dict
-	
+
 	def get_min_fix_res(self):
 		bp = Blueprint(data=[ [ x for x in i ] for i in self.basic_NTF2_obj.NTF2_bp.bp_data ] )
 		bp.reindex_blueprint()
 		switch_pos = bp.segment_dict['E6'].bp_data[-3][0]
 		return switch_pos
 
-def NTF2CanHaveCTermH(BasicNTF2_pose, BasicNTF2_obj):
-	ring_bp = Blueprint(data=[ [ x for x in i ] for i in BasicNTF2_obj.NTF2_bp.bp_data ] )
+def NTF2CanHaveCTermH(BasicNTF2_pose, BasicNTF2_obj=None,ring_obj=None):
+	ring_bp = None
+	if BasicNTF2_obj:
+		ring_bp = Blueprint(data=[ [ x for x in i ] for i in BasicNTF2_obj.NTF2_bp.bp_data ] )
+	elif ring_obj:
+		ring_bp = Blueprint(data=[ [ x for x in i ] for i in ring_obj.ring_bp.bp_data ] )
 	ring_bp.reindex_blueprint()
 
 	#E3_N_pos = ring_bp.segment_dict['E3'].bp_data[0][0]
@@ -1886,7 +1894,7 @@ def NTF2CanHaveCTermH(BasicNTF2_pose, BasicNTF2_obj):
 	#distance_v = E3_N_CA - E3_C_CA
 	distance_v = E5_N_CA - E6_C_CA
 	E6_C_E5_N = distance_v.length()
-	
+
 	if (E6_C_E5_N > 18.5) or (E6_C_E5_N < 15.0):
 		print("E6_C_E5_N: %0.2f"%E6_C_E5_N)
 		print("The mouth is too small or too big for a C-term helix")
@@ -1901,5 +1909,5 @@ def SetUpCHelixStep(BasicNTF2_obj, BasicNTF2_pose = None ):
 		return NTF2_CTermHelix(BasicNTF2_obj, basic_NTF2_pose = BasicNTF2_pose, h_len = 8 , loopABEGO = 'B')
 
 
-if __name__ == "__main__":	
+if __name__ == "__main__":
 	print("This is the NTF2 toolkit by Benjamin Basanta - June 2017")

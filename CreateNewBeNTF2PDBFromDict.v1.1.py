@@ -1,96 +1,13 @@
 #!/software/conda/envs/pyrosetta/bin/python3.7
 
-from BeNTF2_toolkit import *
-import json
-import argparse
-import copy
-import os
+from CreateBeNTF2_backbone import *
+#from BeNTF2_toolkit import *
+#import json
+#import argparse
+#import copy
+#import os
 
-def MakeMoverFromXML(xmlfile,replaces,pose):
-        print("Will attempt to create mover now")
-        parser = protocols.rosetta_scripts.RosettaScriptsParser()
-        replaces_container = utility.vector1_string(0)
-
-        for i in replaces:
-                replaces_container.append(i)
-
-        modified_pose = False
-        tag = parser.create_tag_from_xml( xmlfile, replaces_container)
-        in_mover = parser.generate_mover_for_protocol( pose, modified_pose, tag, options )
-        print("Propterly created mover")
-        return in_mover
-
-def add_BeNTF2_dict_comment(POSE,dict_line):
-        core.pose.add_comment(POSE,"BENTF2DICT",dict_line)
-
-def add_SS_labels(POSE,basic_NTF2Obj):
-        '''
-        Using an NTF2 object, use its inner Blueprint lines to extract a secondary structure string
-        and put that in the pose as a comment titled "SECSTRUCT"
-        '''
-        SS_list = [i[2][0] for i in basic_NTF2Obj.NTF2_bp.bp_data]
-        SS_string = ''.join(SS_list)
-        core.pose.add_comment(POSE,"SECSTRUCT",SS_string)
-
-def detect_pocket_residues(POSE,basic_NTF2Obj):
-        bp_data = copy.copy(basic_NTF2Obj.NTF2_bp.bp_data)
-        bp = Blueprint(data=bp_data)
-        bp.reindex_blueprint()
-        if basic_NTF2Obj.NTF2_dict["Opening"] == "Classic":
-                E2_N_pos = bp.segment_dict['E1'].bp_data[0][0] + 3
-                E3_N_pos = bp.segment_dict['E3'].bp_data[0][0]
-
-                E3_N_CA = POSE.residue(E3_N_pos).xyz('CA')
-                E2_N_CA = POSE.residue(E2_N_pos).xyz('CA')
-
-                midpoint = numeric.xyzVector_double_t( (E3_N_CA[0]+E2_N_CA[0])/2, (E3_N_CA[1]+E2_N_CA[1])/2, (E3_N_CA[2]+E2_N_CA[2])/2)
-
-        else:
-                H2_N_pos = bp.segment_dict['H2'].bp_data[0][0]
-                E1_C_pos = bp.segment_dict['E1'].bp_data[0][0] + 3
-
-                H2_N_CA = POSE.residue(H2_N_pos).xyz('CA')
-                E1_C_CA = POSE.residue(E1_C_pos).xyz('CA')
-
-                midpoint = numeric.xyzVector_double_t( (H2_N_CA[0]+E1_C_CA[0])/2, (H2_N_CA[1]+E1_C_CA[1])/2, (H2_N_CA[2]+E1_C_CA[2])/2)
-
-        virt_type = core.pose.virtual_type_for_pose(POSE)
-        virt = core.conformation.ResidueFactory.create_residue(virt_type)
-        virt.set_xyz('ORIG',midpoint)
-        last_res = len(POSE)
-        POSE.append_residue_by_jump(virt,last_res)
-        protein_selector = core.select.residue_selector.ResidueIndexSelector()
-        virt_atm_selector = core.select.residue_selector.ResidueIndexSelector()
-        protein_selector.set_index('1-%d'%last_res)
-        virt_atm_selector.set_index('%d'%(last_res+1))
-        ss_selector = core.select.residue_selector.SecondaryStructureSelector()
-        ss_string = ('').join([i[2][0] for i in bp.bp_data])+'L'
-        ss_selector.set_pose_secstruct(ss_string)
-        ss_selector.set_selected_ss('HE')
-        grp1_selector = core.select.residue_selector.AndResidueSelector()
-        grp1_selector.add_residue_selector(ss_selector)
-        grp1_selector.add_residue_selector(protein_selector)
-        interf_selector = core.select.residue_selector.InterGroupInterfaceByVectorSelector()
-        interf_selector.group1_selector(grp1_selector)
-        interf_selector.group2_selector(virt_atm_selector)
-        interf_selector.cb_dist_cut(20.0)
-        interf_selector.vector_dist_cut(16.0)
-        interf_selector.vector_angle_cut(90.0)
-        interf_selector.nearby_atom_cut(0.0)
-        positions_bool = interf_selector.apply(POSE)
-        position_vector = []
-        for i,n in enumerate(positions_bool):
-                if n:
-                        position_vector.append(i+1)
-        return position_vector
-
-def add_pocket_labels(POSE,positions):
-        info = POSE.pdb_info()
-        pocket_label = 'Pckt'
-        for i in positions:
-                info.add_reslabel(i,pocket_label)
-
-
+'''
 def CreateSheetPoseFromObj(sheet_obj,POSE,n_trials_sheet=25,sheet_type=None):
         failed_mover_statuses_names = [ "FAIL_RETRY", "FAIL_DO_NOT_RETRY", "FAIL_BAD_INPUT"]
         failed_mover_statuses = [ protocols.moves.mstype_from_name( name ) for name in failed_mover_statuses_names ]
@@ -264,12 +181,16 @@ def AddCtermHelix(BasicBeNTF2_obj,BasicNTF2_pose=None,trials=25):
                         os.remove(CH_BeNTF2_bp_name)
                         os.remove(CH_BeNTF2_bpCST_name)
                         return True
-
-def CreateBeNTF2PoseFromDict(BeNTF2dict,POSE):
+'''
+def CreateBeNTF2PoseFromDict(BeNTF2dict,POSE,arch_len=None):
         init_pose_len = POSE.size()
+        ring_data_dict = BeNTF2dict["ring_dict"]
         sheet_dict = BeNTF2dict["ring_dict"]["sheet_dict"]
-        sheet_obj = CreateSheetObjFromDict(sheet_dict)
-        success = CreateSheetPoseFromObj(sheet_obj,POSE,n_trials_sheet=25)
+        #sheet_obj = CreateSheetObjFromDict(sheet_dict)
+        #success = CreateSheetPoseFromObj(sheet_obj,POSE,n_trials_sheet=25)
+
+        sheet_obj,success = CreateSheet(POSE,n_trials_sheet=25,sheet_type=ring_data_dict["sheet_type"],\
+                              prefix=prefix,trial=trial,db=db,options=options,arch_len=arch_len)
         if not success: return sheet_obj,False
         Base_LArm_angle =  Get_SheetBase_longArm_angle(POSE,sheet_obj)
         Dist_to_bulgeE6 = Get_SheetE6bulge_E3N_dist(POSE,sheet_obj)
@@ -288,23 +209,30 @@ def CreateBeNTF2PoseFromDict(BeNTF2dict,POSE):
                                 print('Sheet is outward-facing, long arm == 4 and Dist_to_bulgeE6 > 29, discarding')
                                 return sheet_obj,False
 
-        ring_data_dict = BeNTF2dict["ring_dict"]
         Ring = CreateRingObjFromDict(ring_data_dict,db=db)
-        success = AssembleRing(POSE,Ring,ring_trials=25)
+        success = AssembleRing(POSE,Ring,ring_trials=10,\
+                              prefix=prefix,trial=trial,db=db,options=options)
 
         if not success: return Ring,False
 
+        can_have_cHelix = NTF2CanHaveCTermH(POSE, ring_obj=Ring)
+
+        if BeNTF2_obj.has_cHelix and not can_have_cHelix:
+            success = False
+
         BeNTF2_obj = CreateBasicNTF2fromDict(BeNTF2dict,NTF2_is_complete=False,db=db)
-        success = AssembleBasicBeNTF2(POSE,BeNTF2_obj,trials=25)
+        success = AssembleBasicBeNTF2(POSE,BeNTF2_obj,trials=25,\
+                                      prefix=prefix,trial=trial,db=db,options=options)
 
         if not success: return BeNTF2_obj,False
 
         if BeNTF2_obj.has_cHelix:
-                success = AddCtermHelix(BeNTF2_obj,BasicNTF2_pose=POSE,trials=25)
+                success = AddCtermHelix(BeNTF2_obj,BasicNTF2_pose=POSE,trials=25,\
+                                        prefix=prefix,trial=trial,db=db,options=options)
 
         if success: return BeNTF2_obj,True
         else: return BeNTF2_obj,False
-
+'''
 def add_SS_positions(POSE,NTF2_obj):
         info = POSE.pdb_info()
         H1_label = 'H1pos'
@@ -322,7 +250,7 @@ def add_SS_positions(POSE,NTF2_obj):
         long_HP_positions = NTF2_obj.get_long_arm_inward_pos()
         for i in long_HP_positions:
                 info.add_reslabel(i,long_HP_label)
-
+'''
 if __name__ == "__main__":
         ########## Option system: ###########
         argparser = argparse.ArgumentParser(description='Create a BeNTF2 backbone.')
@@ -331,6 +259,7 @@ if __name__ == "__main__":
         argparser.add_argument('-nstruct', type=int,help='Max number of structures to output. May output less if some of them fail.')
         argparser.add_argument('-prefix', type=str,help='Prefix to add to output names.')
         args = argparser.parse_args()
+        prefix=''
         if args.prefix:
                 prefix = args.prefix
         else:
@@ -349,7 +278,9 @@ if __name__ == "__main__":
 
         PDB_fname = args.input_pdb
         pdb_handle = open(PDB_fname,'r')
-        dict_line = [ line[:-1] for line in pdb_handle.readlines() if 'BENTF2DICT' in line ][0]
+        lines = [ line[:-1] for line in pdb_handle.readlines()]
+        dict_line = [ line for line in lines if 'BENTF2DICT' in line ][0]
+        features_lines = [ line for line in lines if 'FEATURES' in line ]
         pdb_handle.close()
         dict_string = ' '.join(dict_line.split()[1:])
         BeNTF2dict = json.loads(dict_string)
@@ -360,7 +291,13 @@ if __name__ == "__main__":
                 success =  False
                 for attempt in range(20):
                         POSE = pose_from_file( filename='%s/input.pdb'%db )
-                        BeNTF2_obj,success = CreateBeNTF2PoseFromDict(BeNTF2dict,POSE)
+                        if len(features_lines)==1:
+                            feat_string = ' '.join(features_lines[0].split()[1:])
+                            features_dict = json.loads(feat_string)
+                            arch_len_val = features_dict["dist"]
+                            BeNTF2_obj,success = CreateBeNTF2PoseFromDict(BeNTF2dict,POSE,arch_len=arch_len_val)
+                        else:
+                            BeNTF2_obj,success = CreateBeNTF2PoseFromDict(BeNTF2dict,POSE)
                         if success: break
                 if not success:
                         print("Unable to make this NTF2 again in the number of iterations provided... sorry...")
@@ -369,6 +306,22 @@ if __name__ == "__main__":
                 # I decided not to add TRP lock and gly positions, those can be automatically detected later:
 
                 POSE.data().clear()
+                sheet_dict = BeNTF2dict["ring_dict"]["sheet_dict"]
+                sheet_obj = NTF2_sheet(**sheet_dict)
+                dist = Get_SheetE6bulge_E3N_dist(POSE,sheet_obj)
+                long_arm_ang = Get_SheetBase_longArm_angle(POSE,sheet_obj)
+                shoot = Get_longArm_shootingAngle(POSE,sheet_obj)
+                prot = Get_longArm_protrusionDist(POSE,sheet_obj)
+                sheet_type = GetSheetType(sheet_obj,db)
+                base = sheet_obj.sheet_data['base_width']
+                long_arm = sheet_obj.sheet_data['long_arm_l']
+                short_arm = sheet_obj.sheet_data['short_arm_l']
+                sec_bulge = 0 if not sheet_obj.sheet_data["Second_bulge_E3"] else 1
+                main_bulge_curve = sheet_obj.sheet_data["E3_MainBulgeCurve"]
+                features_v = { 'dist':dist,'long_arm_ang':long_arm_ang,'shoot':shoot,\
+                				'prot':prot,'sheet_type':sheet_type,'base':base,'long_arm':long_arm,\
+                				'short_arm':short_arm,'sec_bulge':sec_bulge,'main_bulge_curve':main_bulge_curve }
+
                 dict_string = json.dumps(BeNTF2_obj.NTF2_dict)
                 add_SS_labels(POSE,BeNTF2_obj)
                 add_BeNTF2_dict_comment(POSE,dict_string)
