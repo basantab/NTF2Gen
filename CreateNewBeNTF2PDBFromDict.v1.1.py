@@ -210,14 +210,18 @@ def CreateBeNTF2PoseFromDict(BeNTF2dict,POSE,arch_len=None):
                                 return sheet_obj,False
 
         Ring = CreateRingObjFromDict(ring_data_dict,db=db)
-        success = AssembleRing(POSE,Ring,ring_trials=10,\
+        success = AssembleRing(POSE,Ring,ring_trials=25,\
                               prefix=prefix,trial=trial,db=db,options=options)
 
         if not success: return Ring,False
 
         can_have_cHelix = NTF2CanHaveCTermH(POSE, ring_obj=Ring)
+        tropical_capacity = RingCanBeTP_NTF2(POSE,Ring)
 
-        if BeNTF2_obj.has_cHelix and not can_have_cHelix:
+        if BeNTF2dict["Opening"] == "Tropical" and not tropical_capacity:
+            success = False
+
+        if BeNTF2dict["has_cHelix"] and not can_have_cHelix:
             success = False
 
         BeNTF2_obj = CreateBasicNTF2fromDict(BeNTF2dict,NTF2_is_complete=False,db=db)
