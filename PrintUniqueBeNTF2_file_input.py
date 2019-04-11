@@ -1,4 +1,4 @@
-#!/software/miniconda3/envs/pyrosetta3/bin/python3
+#!/software/conda/envs/pyrosetta/bin/python3.7
 
 from BeNTF2_toolkit import *
 import json
