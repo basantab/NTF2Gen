@@ -73,18 +73,21 @@ if __name__ == "__main__":
 	PDBs = [ i[:-1] for i in fname_list_handle.readlines() ]
 	fname_list_handle.close()
 	print("Done reading file names")
-	uniq = []
+	full_list = {}
 	PDBs_dicts = { fname:get_dict_fname(fname) for fname in PDBs }
 	print("Done converting files to dictionaries")
+	n_cluster = 0
 	for n,i in enumerate(sorted(PDBs_dicts.keys())):
 		are_the_same = []
 		uniq_one = True
 		for target in sorted([ key for key in PDBs_dicts.keys()])[:n]:
 			if compare_BeNTF2Dict( PDBs_dicts[i], PDBs_dicts[target]) :
+				full_list[i] = full_list[target]
 				uniq_one = False
 				break
 		if uniq_one:
-			uniq.append(i)
+			full_list[i] = n_cluster
+			n_cluster += 1
 	print("Unique dict NTF2s")
-	for i in uniq:
-		print(i)
+	for name,val in full_list.items():
+		print("%s,%d"%(name,val))
