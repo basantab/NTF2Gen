@@ -1,4 +1,4 @@
-#!/software/miniconda3/envs/pyrosetta3/bin/python3
+#!/software/conda/envs/pyrosetta/bin/python3.7
 
 from BeNTF2_toolkit import *
 import json
@@ -94,7 +94,7 @@ def add_pocket_labels(POSE,positions):
 def CreateSheetPoseFromObj(sheet_obj,POSE,n_trials_sheet=25,sheet_type=None):
         failed_mover_statuses_names = [ "FAIL_RETRY", "FAIL_DO_NOT_RETRY", "FAIL_BAD_INPUT"]
         failed_mover_statuses = [ protocols.moves.mstype_from_name( name ) for name in failed_mover_statuses_names ]
-        
+
         init_pose_len = POSE.size()
         print('Attempting to create sheet')
         shee_angle_fname = './%ssheet_angles_%d.csts'%(prefix,trial)
@@ -287,16 +287,16 @@ def CreateBeNTF2PoseFromDict(BeNTF2dict,POSE):
                         elif Dist_to_bulgeE6 > 29:
                                 print('Sheet is outward-facing, long arm == 4 and Dist_to_bulgeE6 > 29, discarding')
                                 return sheet_obj,False
-        
+
         ring_data_dict = BeNTF2dict["ring_dict"]
         Ring = CreateRingObjFromDict(ring_data_dict,db=db)
         success = AssembleRing(POSE,Ring,ring_trials=25)
-        
+
         if not success: return Ring,False
 
         BeNTF2_obj = CreateBasicNTF2fromDict(BeNTF2dict,NTF2_is_complete=False,db=db)
         success = AssembleBasicBeNTF2(POSE,BeNTF2_obj,trials=25)
-        
+
         if not success: return BeNTF2_obj,False
 
         if BeNTF2_obj.has_cHelix:
@@ -346,7 +346,7 @@ if __name__ == "__main__":
 
         init( extra_options=" ".join(general_flags) )
         options = basic.options.process()
-        
+
         PDB_fname = args.input_pdb
         pdb_handle = open(PDB_fname,'r')
         dict_line = [ line[:-1] for line in pdb_handle.readlines() if 'BENTF2DICT' in line ][0]
@@ -381,5 +381,3 @@ if __name__ == "__main__":
                 except RuntimeError:
                         print('Unable to create file, skipping')
                 print("Successfully recreated BeNTF2!")
-
-

@@ -1,25 +1,26 @@
 <ROSETTASCRIPTS>
     <SCOREFXNS>
 	<ScoreFunction name="CENTROID" weights="fldsgn_cen" symmetric="0" >
+                <Reweight scoretype="rg" weight="0.0" />
 		<Reweight scoretype="hbond_lr_bb" weight="1.75" />
                 <Reweight scoretype="hbond_sr_bb" weight="1.0" />
                 <Reweight scoretype="atom_pair_constraint" weight="1.0" />
                 <Reweight scoretype="angle_constraint" weight="1.0" />
                 <Reweight scoretype="dihedral_constraint" weight="0.1" />
                 <Reweight scoretype="omega" weight="1.5" />
-                <Reweight scoretype="rama" weight="1.15" />
+                <Reweight scoretype="rama" weight="1.5" />
 	</ScoreFunction>
 	<!-- ScoreFunction name="CENTROID" weights="fldsgn_cen" symmetric="0" /-->
 	<ScoreFunction name="min_cart" weights="%%remodel_cen%%" >
                 <Reweight scoretype="hbond_sr_bb" weight="1.75" />
                 <Reweight scoretype="hbond_lr_bb" weight="1.75" />
-                <Reweight scoretype="rama" weight="1.15" />
+                <Reweight scoretype="rama" weight="1.5" />
                 <Reweight scoretype="omega" weight="1.5" />
                 <Reweight scoretype="atom_pair_constraint" weight="1.0" />
                 <Reweight scoretype="coordinate_constraint" weight="1.0" />
                 <Reweight scoretype="angle_constraint" weight="1.0" />
                 <Reweight scoretype="dihedral_constraint" weight="0.1" />
-                <Reweight scoretype="cart_bonded" weight="0.5"/>
+                <Reweight scoretype="cart_bonded" weight="0.8"/>
 		<Reweight scoretype="pro_close" weight="0.0"/>
        </ScoreFunction>
        <ScoreFunction name="talaris" weights="talaris2014.wts" >
@@ -97,6 +98,8 @@
            	sidechain="false" ca_only="true"/>
         </AddConstraints>
         <RemoveConstraints name="rm_csts" constraint_generators="gen_my_csts" />
+	<VirtualRoot name="add_VR" removable="True" remove="False" />
+	<VirtualRoot name="rm_VR" removable="True" remove="True" />
         <AddConstraints name="build_csts" >
         	<SheetConstraintGenerator name="sheet_csts" blueprint="%%bp%%"
                 	flat_bottom_constraints="False" angle_tolerance="0.9" cacb_dihedral_tolerance="3.14"
@@ -115,6 +118,7 @@
 	<!--BluePrintBDR name="bdr1" scorefxn="SFXN1" constraint_generators="sheet_new1" blueprint="%%bp%%" /-->
 	<BluePrintBDR name="bdr1" scorefxn="CENTROID" use_abego_bias="True" blueprint="%%bp%%" constraint_file="%%all_cst_file%%" />
 	<ParsedProtocol name="combined_movers" >
+                <Add mover_name="rm_build_csts" />
 		<Add mover_name="RM_ALL_CST"/>
     		<Add mover_name="bdr1"/>
     		<Add mover_name="fa"/>
@@ -123,17 +127,28 @@
 	        <Add mover_name="cen"/>
         	<Add mover_name="build_csts"/>
   	        <Add mover_name="cart_min_mover" />
-        	<Add mover_name="rm_build_csts" />
-		<!--
+        	<!--Add mover_name="rm_build_csts" /-->
+
+		<Add mover_name="add_VR"/>
 	        <Add mover_name="curr_conf_s1"/>
         	<Add mover_name="cart_min_mover" />
         	<Add mover_name="rm_csts"/>
-        	<Add mover_name="build_csts"/>
+                <Add mover_name="curr_conf_s1"/>
+        	<!--Add mover_name="build_csts"/-->
         	<Add mover_name="cart_min_mover" />
-        	<Add mover_name="rm_build_csts" />
+        	<!--Add mover_name="rm_build_csts" /-->
+                <Add mover_name="rm_csts"/>
         	<Add mover_name="curr_conf_s1"/>
         	<Add mover_name="cart_min_mover" />
-		-->
+		<Add mover_name="rm_csts"/>
+                <Add mover_name="curr_conf_s1"/>
+                <Add mover_name="cart_min_mover" />
+		<Add mover_name="rm_csts"/>
+                <Add mover_name="curr_conf_s1"/>
+                <Add mover_name="cart_min_mover" />
+		<Add mover_name="rm_VR"/>
+		
+                <Add mover_name="rm_build_csts" />
 		<Add mover_name="RM_ALL_CST"/>
         	<Add mover_name="fa"/>
         	<Add mover_name="polyALA"/>

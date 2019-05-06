@@ -60,8 +60,6 @@
 </RESIDUE_SELECTORS>
   <RESIDUE_SELECTORS>
     <ResiduePDBInfoHasLabel name="pocket" property="Pckt"/>
-    <Chain name="chain_b" chains="B"/>
-    <Not name="not_chain_b" selector="chain_b"/>
   </RESIDUE_SELECTORS>
   <RESIDUE_SELECTORS>
     <ResiduePDBInfoHasLabel name="lock_trp" property="trp"/>
@@ -127,22 +125,15 @@
     <InterfaceByVector name="interface_w_random_res2" cb_dist_cut="11.0" nearby_atom_cut="5.5" vector_angle_cut="75.0" vector_dist_cut="9.0"
      grp1_selector="not_random_res" grp2_selector="random_res"/>
     <Or name="interface_w_random_res" selectors="interface_w_random_res1,interface_w_random_res2" />
-    <RandomResidue name="select_random_local" num_residues="1" selector="interface_w_random_res"/>
     <And name="repack_around_random_res_RS" selectors="interface_w_random_res,not_random_res"/>
     <Or name="working_set" selectors="random_res,interface_w_random_res"/>
     <Not name="dont_touch_pt_mut_RS" selector="working_set"/>
     <!--        -->
     <!-- HBnet RS -->
-    <And name="HBNet_RS" selectors="not_gly_resc,pocket,not_chain_b"/>
-    <Not name="HBNet_RS_neg" selector="HBNet_RS"/>
-    <And name="not_HBNet_RS" selectors="HBNet_RS_neg,not_chain_b" />
     <!--          -->
   </RESIDUE_SELECTORS>
   <TASKOPERATIONS>
     <!-- HBnet TOs -->
-    <OperateOnResidueSubset name="HBNet_TO" selector="HBNet_RS"> <RestrictAbsentCanonicalAASRLT aas="DEHNQSTWY"/> </OperateOnResidueSubset>
-    <OperateOnResidueSubset name="not_HBNet_TO" selector="not_HBNet_RS"> <PreventRepackingRLT/> </OperateOnResidueSubset>
-    <OperateOnResidueSubset name="repack_HCY" selector="chain_b" > <RestrictToRepackingRLT/> </OperateOnResidueSubset>
     <!--          -->
     <!-- MC TOs -->
     <OperateOnResidueSubset name="pt_mut" selector="random_res" > <RestrictAbsentCanonicalAASRLT aas="ADEFGHIKLMNPQRSTVWY"/> </OperateOnResidueSubset>
@@ -294,6 +285,20 @@
                 <VAR name="TEMP" value="0.2" />
                 <VAR name="ALLOW" value="0.025" />
     </CalculatorFilter>
+    <CalculatorFilter name="logistic_hx_sc" equation="(1/((1/((TEMP/ALLOW)*(-1*x+THRESH)+1))+EXP((((x)-THRESH))*(1/(TOL)^2))))" threshold="0.05" confidence="1" >
+                <VAR name="x" filter="hx_sc" />
+                <VAR name="THRESH" value="0.7" />
+                <VAR name="TOL" value="0.025" />
+                <VAR name="TEMP" value="0.2" />
+                <VAR name="ALLOW" value="0.025" />
+    </CalculatorFilter>
+    <CalculatorFilter name="logistic_BuriedHyphobSAperRes" equation="(1/((1/((TEMP/ALLOW)*(-1*x+THRESH)+1))+EXP((((x)-THRESH))*(1/(TOL)^2))))" threshold="0.05" confidence="1" >
+		<VAR name="x" filter="BuriedHyphobSAperRes" />
+                <VAR name="THRESH" value="69" />
+                <VAR name="TOL" value="0.025" />
+                <VAR name="TEMP" value="0.2" />
+                <VAR name="ALLOW" value="0.025" />
+    </CalculatorFilter>
     <CalculatorFilter name="logistic_non_ala_hyphob_percent" equation="(1/((1/((TEMP/ALLOW)*(-0.01*x+THRESH)+1))+EXP((((0.01*x)-THRESH))*(1/(TOL)^2))))" threshold="0.05" confidence="1" >
                 <VAR name="x" filter="non_ala_hyphob_percent" />
                 <VAR name="THRESH" value="0.27" />
@@ -301,26 +306,20 @@
                 <VAR name="TEMP" value="0.2" />
                 <VAR name="ALLOW" value="0.005" />
     </CalculatorFilter>
-    <CalculatorFilter name="logistic_BuriedHyphobSAperRes" equation="(1/((1/((TEMP/ALLOW)*(-1*x+THRESH)+1))+EXP((((x)-THRESH))*(1/(TOL)^2))))" threshold="0.05" confidence="1" >
- 		<VAR name="x" filter="BuriedHyphobSAperRes" />
-                 <VAR name="THRESH" value="69" />
-                 <VAR name="TOL" value="0.025" />
-                 <VAR name="TEMP" value="0.2" />
-                 <VAR name="ALLOW" value="0.025" />
-     </CalculatorFilter>
     <CalculatorFilter name="logistic_Net_charge" equation="MAX(-2,x)" threshold="-2.1" confidence="1" >
                 <VAR name="x" filter="Net_charge" />
     </CalculatorFilter>
 
-    <!-- (1/((1/(SLOPE*(x-THRESH)+1))+e^((((DIR*x)+THRESH))*(1/(TOL)^2)))) SLOPE=(temp/(positive score change allowed to be accepted 1/3 of the times)) THRESH=Threshold value, TOL=tolerance, DIR=direction,  (-1:less is better, 1:more is better) SLOPE should never be > THRESH
-    temp should be 0.2 -->
-    <!-- Rosetta score: (1/((1/(3*(x-0.5)^2+1))+e^((((-x)+0.5))*(1/(0.2)^2))))  -->
-    <!-- sspred: (1/((1/(3*(x-0.35)+1))+e^((((-x)+0.35))*(1/(0.15)^2)))) -->
-    <!-- non_ala_hyphob_percent: ((1/(((1)/((1/(0.2*0.05))*(x-0.27)^2+1))+e^((((x)-0.27))*(1/(0.05)^2)))))+((1/(((1)/((1/(0.2*0.05))*(x-0.35)^2+1))+e^((((-x)+0.35))*(1/(0.05)^2))))) -->
-    
-    <!-- ############################################################ -->
   </FILTERS>
   <MOVERS>
+    <!--
+    <AddCompositionConstraintMover name="boundary_Helix_comp" filename="%%boundary_Helix%%" selector="boundary_Helix" />
+    <AddCompositionConstraintMover name="boundary_Strand_comp" filename="%%boundary_Strand%%" selector="boundary_Strand" />
+    <AddCompositionConstraintMover name="surface_Helix_comp" filename="%%surface_Helix%%" selector="surface_Helix" />
+    <AddCompositionConstraintMover name="surface_Strand_comp" filename="%%surface_Strand%%" selector="surface_Strand" />
+    <AddCompositionConstraintMover name="core_Helix_comp" filename="%%core_Helix%%" selector="core_Helix" />
+    <AddCompositionConstraintMover name="core_Strand_comp" filename="%%core_Strand%%" selector="core_Strand" />
+    -->
     <AddNetChargeConstraintMover name="netcharge_pocket" filename="%%pocket_charge%%" selector="inward" />
     <AddCompositionConstraintMover name="pocket_comp" filename="%%pocketcomp%%" selector="inward" />
     <AddCompositionConstraintMover name="core_comp" filename="%%core_comp%%" selector="core_SCN" />
@@ -330,7 +329,6 @@
     <PackRotamersMover name="place_gly_resc" scorefxn="beta_cart" task_operations="gly_resc_gly_to,gly_resc_gly_to_sec,not_gly_resc"/>
     <PackRotamersMover name="repack" scorefxn="beta_cart" task_operations="repack_all,ic,ex"/>
     <StoreResidueSubset name="store_random_residue" subset_name="stored_random" residue_selector="select_random" overwrite="True" />
-    <StoreResidueSubset name="store_random_residue_local" subset_name="stored_random" residue_selector="select_random_local" overwrite="True" />
     <RandomMutation name="mutate" task_operations="gly_resc_gly_to,gly_resc_phe_to,gly_resc_gly_to_sec,gly_resc_phe_to_sec,strands_to,SS,ic,pt_mut,around_pt_mut,bulge_A_TO,H1c_TO,L2_1_TO,L2_2_TO,L3_2_TO,L3_3_TO,lock_trp_TO,lock_lys_TO,lock_small_TO,LimitAromaChi2,fix,resfile,consensus_loop" scorefxn="beta_aa_comp_hbnet"/>
     <MinMover name="min" scorefxn="beta" chi="True" bb="True" cartesian="False" type="lbfgs_armijo_nonmonotone" tolerance="0.0001" max_iter="20000" />
     <MinMover name="cart_min"
@@ -347,19 +345,20 @@
      <Add mover_name="store_random_residue"/>
      <Add mover_name="mutate"/>
      <Add mover_name="cart_min"/>
-     <Add mover_name="store_random_residue_local"/>
+     <Add mover_name="store_random_residue"/>
      <Add mover_name="mutate"/>
      <Add mover_name="cart_min"/>
     </ParsedProtocol>
 
 	<GenericSimulatedAnnealer name="MC" mover_name="Point_mutation" filter_name="logistic_score_res_opt"
-        trials="500" sample_type="low" temperature="0.025" drift="True" recover_low="True"
+        trials="1000" sample_type="low" temperature="0.025" drift="True" recover_low="True"
 	bolz_rank="True" preapply="False" history="1501">
 	<!-- ceckpoint_file="checkpoint" eval_period="1" periodic_mover="store_random_residue" -->
   	<Filters>
                 <AND filter_name="rama_res" temperature="0.001" sample_type="low" /> <!-- no outliers!! -->
                 <AND filter_name="geom" temperature="0.001" sample_type="low" /> <!-- no outliers!! -->
-		<AND filter_name="sc_buns" temperature="0.05" sample_type="low" />
+		<AND filter_name="secstruct_filter" temperature="0.01" sample_type="high" />
+		<AND filter_name="all_buns" temperature="0.05" sample_type="low" />
                 <AND filter_name="logistic_non_ala_hyphob_percent" temperature="0.05" sample_type="low" />
                 <AND filter_name="logistic_Net_charge" temperature="0.05" sample_type="low" />
 		<AND filter_name="logistic_BuriedHyphobSAperRes" temperature="0.05" sample_type="low" />
@@ -376,22 +375,17 @@
 
     <ClearConstraintsMover name="rm_cst" />
 
-
   </MOVERS>
   <PROTOCOLS>
     <Add mover_name="surface_comp"/>
     <Add mover_name="core_comp"/>
     <Add mover_name="netcharge_pocket"/>
-    <Add mover="place_gly_resc"/>
     <Add mover_name="MC"/>
-    <Add mover_name="Relax_cart"/>
     <Add filter_name="Net_charge"/>
     <Add filter_name="all_buns"/>
     <Add filter_name="sc_buns"/>
     <Add filter_name="secstruct_filter"/>
     <Add filter_name="sheet_topo"/>
-    <Add filter_name="geom"/>
-    <Add filter_name="rama_res"/>
     <Add filter_name="hx_sc"/>
     <Add filter_name="sspred"/>
     <Add filter_name="score_res"/>

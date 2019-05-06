@@ -1,24 +1,26 @@
 <ROSETTASCRIPTS>
         <SCOREFXNS>
                 <ScoreFunction name="CENTROID" weights="%%fldsgn_cen%%" symmetric="0" >
+                        <Reweight scoretype="rg" weight="0.0" />
                         <Reweight scoretype="hbond_lr_bb" weight="1.75" />
                         <Reweight scoretype="hbond_sr_bb" weight="1.0" />
                         <Reweight scoretype="atom_pair_constraint" weight="0.1" />
                         <Reweight scoretype="angle_constraint" weight="1.0" />
                         <Reweight scoretype="dihedral_constraint" weight="1.0" />
                         <Reweight scoretype="omega" weight="1.5" />
-                        <Reweight scoretype="rama" weight="1.15" />
+                        <Reweight scoretype="rama" weight="1.5" />
                 </ScoreFunction>
 		<ScoreFunction name="min_cart" weights="%%remodel_cen%%" >
+                        <Reweight scoretype="rg" weight="0.0" />
 			<Reweight scoretype="hbond_sr_bb" weight="1.0" />
 			<Reweight scoretype="hbond_lr_bb" weight="1.0" />
-			<Reweight scoretype="rama" weight="1.15" />
+			<Reweight scoretype="rama" weight="1.5" />
 			<Reweight scoretype="omega" weight="1.5" />
 			<Reweight scoretype="atom_pair_constraint" weight="1.0" />
 			<Reweight scoretype="coordinate_constraint" weight="1.0" />
 			<Reweight scoretype="angle_constraint" weight="1.0" />
 			<Reweight scoretype="dihedral_constraint" weight="1.0" />
-			<Reweight scoretype="cart_bonded" weight="0.5"/>
+			<Reweight scoretype="cart_bonded" weight="0.8"/>
 			<Reweight scoretype="pro_close" weight="0.0"/>
 			<!--Reweight scoretype="cen_hb" weight="5.0" /-->
 		</ScoreFunction>
@@ -67,6 +69,8 @@
 		<DumpPdb name="init" fname="init_" tag_time="True"/>
 		<DumpPdb name="after_min" fname="after_min_" tag_time="True"/>
 		<DumpPdb name="after_hyb" fname="after_hyb_" tag_time="True"/>
+                <VirtualRoot name="add_VR" removable="True" remove="False" />
+                <VirtualRoot name="rm_VR" removable="True" remove="True" />
 		<SwitchResidueTypeSetMover name="cen" set="centroid"/>
 		<PackRotamersMover name="design_loops_s1" scorefxn="talaris" task_operations="repack_s1,no_pro,design_loops_and_flanking_s1"/>
 		<MakePolyX name="polyALA" aa="ALA" keep_pro="True" keep_gly="True" />
@@ -93,32 +97,34 @@
 		<BluePrintBDR name="bdr" blueprint="%%bp%%" use_abego_bias="True" use_sequence_bias="False" scorefxn="CENTROID" constraint_file="%%cst_file%%" />
 		<ParsedProtocol name="movers">
                         <Add mover="rm_csts"/>
-                        <Add mover_name="bdr" />
-			<Add mover_name="polyVAL"/>
+                        <Add mover="bdr" />
+			<Add mover="polyVAL"/>
 			<Add mover="cen"/>
 			<Add mover="rm_csts"/>
-                                <Add mover="rm_build_csts" />
-                                <Add mover="rm_curve_csts"/>
-                                <Add mover="fa"/>
-                                <Add mover="design_loops_s1"/>
-                                <Add mover="cen"/>
-                                <Add mover="build_csts"/>
-                                <Add mover="cart_min_mover" />
-                                <Add mover="curr_conf_s1"/>
-                                <Add mover="cart_min_mover" />
-                                <Add mover="rm_build_csts" />
-                                <Add mover="rm_csts"/>
-                                <Add mover="curr_conf_s1"/>
-                                <Add mover="cart_min_mover" />
-                                <Add mover="rm_csts"/>
-                                <Add mover="curr_conf_s1"/>
-                                <Add mover="cart_min_mover" />
-                                <Add mover="rm_csts"/>
-                                <Add mover="curr_conf_s1"/>
-                                <Add mover="cart_min_mover" />
-                                <Add mover="rm_csts"/>
-                                <Add mover="rm_build_csts" />
-                                <Add mover="rm_curve_csts"/>
+                        <Add mover="rm_build_csts" />
+                        <Add mover="rm_curve_csts"/>
+                        <Add mover="fa"/>
+                        <Add mover="design_loops_s1"/>
+                        <Add mover="cen"/>
+                        <Add mover="build_csts"/>
+                        <Add mover="cart_min_mover" />
+                        <Add mover="add_VR"/>
+                        <Add mover="curr_conf_s1"/>
+                        <Add mover="cart_min_mover" />
+                        <Add mover="rm_build_csts" />
+                        <Add mover="rm_csts"/>
+                        <Add mover="curr_conf_s1"/>
+                        <Add mover="cart_min_mover" />
+                        <Add mover="rm_csts"/>
+                        <Add mover="curr_conf_s1"/>
+                        <Add mover="cart_min_mover" />
+                        <Add mover="rm_csts"/>
+                        <Add mover="curr_conf_s1"/>
+                        <Add mover="cart_min_mover" />
+                        <Add mover="rm_VR"/>
+                        <Add mover="rm_csts"/>
+                        <Add mover="rm_build_csts" />
+                        <Add mover="rm_curve_csts"/>
 			<Add mover="fa"/>
                 </ParsedProtocol>
 		<LoopOver name="loop_over_bdr" mover_name="movers" filter_name="all_filters" iterations="%%sheet_attempts%%" drift="False" ms_whenfail="FAIL_DO_NOT_RETRY" />
@@ -129,7 +135,7 @@
 		<Add mover="polyALA"/>
 		<Add filter="av_strand_hb"/>
                 <Add mover="rm_csts"/>
-                                <Add mover="rm_build_csts" />
-                                <Add mover="rm_curve_csts"/>
+                <Add mover="rm_build_csts" />
+                <Add mover="rm_curve_csts"/>
 	</PROTOCOLS>
 </ROSETTASCRIPTS>

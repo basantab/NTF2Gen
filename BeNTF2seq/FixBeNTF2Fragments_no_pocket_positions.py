@@ -147,7 +147,7 @@ if abego == 'GG':
 		resfile_handle.write( '%d A PIKAA %s\n'%(HP_acid_1,HP_acid_1_aa) )
 		HP_acid_2 = loop4_N + 4; HP_acid_2_aa = 'E'
 		resfile_handle.write( '%d A PIKAA %s\n'%(HP_acid_2,HP_acid_2_aa) )
-		HP_base = loop4_N + 3; HP_base_aa = 'RQK'
+		HP_base = loop4_N - 3; HP_base_aa = 'RQK'
 		resfile_handle.write( '%d A PIKAA %s\n'%(HP_base,HP_base_aa) )
 
 # Short Arm:
