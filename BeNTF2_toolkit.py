@@ -1904,7 +1904,7 @@ def NTF2CanHaveCTermH(BasicNTF2_pose, BasicNTF2_obj=None,ring_obj=None):
 
 def SetUpCHelixStep(BasicNTF2_obj, BasicNTF2_pose = None ):
 	if BasicNTF2_obj.NTF2_dict["Opening"] == "Tropical":
-		return NTF2_CTermHelix(BasicNTF2_obj, basic_NTF2_pose = BasicNTF2_pose, h_len = 11 )
+		return NTF2_CTermHelix(BasicNTF2_obj, basic_NTF2_pose = BasicNTF2_pose, h_len = 11, loopABEGO = 'AB' )
 	else:
 		return NTF2_CTermHelix(BasicNTF2_obj, basic_NTF2_pose = BasicNTF2_pose, h_len = 8 , loopABEGO = 'B')
 
