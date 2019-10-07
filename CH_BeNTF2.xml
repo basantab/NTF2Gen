@@ -71,6 +71,9 @@
         </CompoundStatement>
     </FILTERS>
     <MOVERS>
+	<DumpPdb name="init" fname="init_CH" tag_time="True"/>
+        <DumpPdb name="after_min" fname="after_min_CH" tag_time="True"/>
+        <DumpPdb name="after_hyb" fname="after_hyb_" tag_time="True"/>
 	<SwitchResidueTypeSetMover name="cen" set="centroid"/>
         <PackRotamersMover name="design_loops_s1" scorefxn="talaris" task_operations="repack_s1,design_loops_and_flanking_s1,no_pro"/>
         <MakePolyX name="polyALA" aa="ALA" />
@@ -91,6 +94,8 @@
 	<!--BluePrintBDR name="bdr1" scorefxn="SFXN1" constraint_generators="sheet_new1" blueprint="%%bp%%" /-->
 	<BluePrintBDR name="bdr1" scorefxn="CENTROID" use_abego_bias="True" blueprint="%%bp%%" constraint_file="%%all_cst_file%%" />
 	<ParsedProtocol name="combined_movers" >
+		<Add mover="RM_ALL_CST"/>
+		<Add mover="rm_build_csts" />
 		<Add mover="bdr1"/>
         	<Add mover="fa"/>
         	<Add mover="RM_ALL_CST"/>

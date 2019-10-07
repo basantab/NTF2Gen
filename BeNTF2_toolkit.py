@@ -378,8 +378,8 @@ class NTF2_sheet():
 		E3N = self.blueprint.segment_dict['E1'].bp_data[0][0]
 		E6_bulge_INDEX_from_N = 2*(self.short_arm_l)
 		E6 = self.blueprint.segment_dict['E4']
-		E6Bulge_A = E6.bp_data[E6_bulge_INDEX_from_N][0]+1
-		CST_Longest_arch_dist = "AtomPair CA %i CA %i FLAT_HARMONIC 16.0 3.0 9.0"%(E3N,E6Bulge_A)
+		E6Bulge_A = E6.bp_data[E6_bulge_INDEX_from_N][0]
+		CST_Longest_arch_dist = "AtomPair CA %i CA %i FLAT_HARMONIC 20.0 3.0 10.0"%(E3N,E6Bulge_A)
 		if self.arch_dist:
 			CST_Longest_arch_dist = "AtomPair CA %i CA %i HARMONIC %0.2f 3.0"%(E3N,E6Bulge_A,self.arch_dist)
 		# E3 main curvature
@@ -821,6 +821,7 @@ class RingConnection():
 			self.ring_bp.bp_data[2][-1] = 'R'
 			# Add residues on N term:
 			self.ring_bp.bp_data[0][-2] = 'EB'
+			self.pairings.append('3-4.A.0')
 			self.ring_bp.bp_data.insert(0,[0,'A','LB','R'])
 			self.ring_bp.bp_data.insert(0,[0,'A','LA','R'])
 			self.ring_bp.bp_data.insert(0,[0,'A','LB','R'])
@@ -835,6 +836,7 @@ class RingConnection():
 			self.ring_bp.bp_data[2][-1] = 'R'
 			# Add residues on N term:
 			self.ring_bp.bp_data[0][-2] = 'LA'
+			self.pairings.append('3-4.A.-1')
 			self.ring_bp.bp_data.insert(0,[0,'A','LB','R'])
 			for i in range(self.h_len):
 				self.ring_bp.bp_data.insert(0,[0,'A','HA','R'])
@@ -844,6 +846,7 @@ class RingConnection():
 			self.ring_bp.bp_data[1][-1] = 'R'
 			self.ring_bp.bp_data[2][-1] = 'R'
 			self.ring_bp.bp_data[0][-2] = 'LB'
+			self.pairings.append('3-4.A.-1')
 			#self.ring_bp.bp_data.insert(0,[0,'A','LB','R'])
 			# Add residues on N term:
 			#self.ring_bp.bp_data[0][-2] = 'HA'
@@ -859,6 +862,7 @@ class RingConnection():
 			# Add residues on N term:
 			self.ring_bp.bp_data[1][-2] = 'EA'
 			self.ring_bp.bp_data[0][-2] = 'LB'
+			self.pairings.append('3-4.A.-1')
 			for i in range(self.h_len):
 				self.ring_bp.bp_data.insert(0,[0,'A','HA','R'])
 		if self.connection_type == 'GBA':
@@ -866,6 +870,7 @@ class RingConnection():
 			self.ring_bp.bp_data[1][-1] = 'R'
 			self.ring_bp.bp_data[2][-1] = 'R'
 			self.ring_bp.bp_data[0][-2] = 'LA'
+			self.pairings.append('3-4.A.-1')
 			self.ring_bp.bp_data.insert(0,[0,'A','LB','R'])
 			self.ring_bp.bp_data.insert(0,[0,'A','LG','R'])
 			for i in range(self.h_len):
@@ -875,6 +880,7 @@ class RingConnection():
 			self.ring_bp.bp_data[1][-1] = 'R'
 			self.ring_bp.bp_data[2][-1] = 'R'
 			self.ring_bp.bp_data[0][-2] = 'LB'
+			self.pairings.append('3-4.A.-1')
 			self.ring_bp.bp_data.insert(0,[0,'A','LG','R'])
 			for i in range(self.h_len):
 				self.ring_bp.bp_data.insert(0,[0,'A','HA','R'])
@@ -883,6 +889,7 @@ class RingConnection():
 			self.ring_bp.bp_data[1][-1] = 'R'
 			#self.ring_bp.bp_data[1][-2] = 'B'
 			self.ring_bp.bp_data[0][-2] = 'LB'
+			self.pairings.append('3-4.A.-1')
 			self.ring_bp.bp_data.insert(0,[0,'A','LG','R'])
 			self.ring_bp.bp_data.insert(0,[0,'A','LB','R'])
 			self.ring_bp.bp_data.insert(0,[0,'A','LB','R'])
@@ -893,6 +900,7 @@ class RingConnection():
 			self.ring_bp.bp_data[1][-1] = 'R'
 			self.ring_bp.bp_data[1][-2] = 'EB'
 			self.ring_bp.bp_data[0][-2] = 'LA'
+			self.pairings.append('3-4.A.-1')
 			self.ring_bp.bp_data.insert(0,[0,'A','LA','R'])
 			self.ring_bp.bp_data.insert(0,[0,'A','LG','R'])
 			for i in range(self.h_len):
@@ -902,6 +910,7 @@ class RingConnection():
 			self.ring_bp.bp_data[1][-1] = 'R'
 			self.ring_bp.bp_data[1][-2] = 'EB'
 			self.ring_bp.bp_data[0][-2] = 'LB'
+			self.pairings.append('3-4.A.-1')
 			self.ring_bp.bp_data.insert(0,[0,'A','LA','R'])
 			self.ring_bp.bp_data.insert(0,[0,'A','LB','R'])
 			self.ring_bp.bp_data.insert(0,[0,'A','LA','R'])
@@ -926,7 +935,7 @@ class RingConnection():
 			self.ring_bp.bp_data.insert(0,[0,'A','HA','R'])
 		self.ring_bp.bp_data.insert(0,[0,'A','LX','R'])
 		self.pairings.append('1-2.A.0')
-		self.pairings.append('3-4.A.0')
+		#self.pairings.append('3-4.A.0')
 		E6_E1_RegShift = -1*(self.sheet_obj.sheet_data["short_arm_l"]*2 + 1)
 		hairpin_pairing_string = '1-6.P.%d'%E6_E1_RegShift
 		self.pairings.append(hairpin_pairing_string)
@@ -946,7 +955,8 @@ class RingConnection():
 
 	ring_attributes = ['h_len','hairpin_len','connection_type','loopOneABEGO']
 
-	def __init__(self, sheet_obj, sheet_pose = None , h_len = None, loopOneABEGO = 'E', hairpin_len = 4, connection_type='GB', db = None):
+	def __init__(self, sheet_obj, sheet_pose = None , h_len = None, loopOneABEGO = 'E', hairpin_len = 4, connection_type='GB',\
+			db = None ,bias_TP=False, bias_CH_not_TP=False):
 		self.allowed_connections = self.Connection_types
 		self.db = db
 		self.h_len = h_len
@@ -957,10 +967,16 @@ class RingConnection():
 		self.loopOneABEGO = loopOneABEGO
 		self.sheet_pose = sheet_pose
 		self.sheet_obj = sheet_obj
+		self.bias_TP = bias_TP
+		self.bias_CH_not_TP = bias_CH_not_TP
+		if self.bias_TP and self.bias_CH_not_TP: raise ValueError('You can\'t bias for C-terminal helix and TP at the same time')
 		self.ring_bp = Blueprint(data=[ [ x for x in i ] for i in sheet_obj.blueprint.bp_data ] )
 		self.ring_bp.freeze_all()
 		self.ring_bp.reindex_blueprint()
 		self.pairings = []
+		inherited_pairings = [ "4-5.A.%s"%(i.split('.')[-1]) for i in self.sheet_obj.sheet_data['pairing_lines'] if "2-3.A" in i ]
+		inherited_pairings += [ "5-6.A.%s"%(i.split('.')[-1]) for i in self.sheet_obj.sheet_data['pairing_lines'] if "3-4.A" in i ]
+		self.pairings += inherited_pairings
 		self.generate_bp()
 		self.ring_dict = {}
 		self.populate_ring_dict()
@@ -987,6 +1003,15 @@ class RingConnection():
 		bp.reindex_blueprint()
 
 		cst_string = ''
+		if self.bias_TP:
+			E4c = bp.segment_dict['E4'].bp_data[-1][0]
+			E1c = bp.segment_dict['E1'].bp_data[-1][0]
+			cst_string += "AtomPair CA %i CA %i FLAT_HARMONIC 14.5 3.0 1.4\n"%(E1c,E4c)
+
+		if self.bias_CH_not_TP:
+			E6c = bp.segment_dict['E6'].bp_data[-1][0]
+			E5n = bp.segment_dict['E5'].bp_data[0][0]
+			cst_string += "AtomPair CA %i CA %i FLAT_HARMONIC 16.5 3.0 1.9\n"%(E6c,E5n)
 
 		if self.connection_type=='ClassicBulge':
 			hbond1_don = bp.segment_dict['E3'].bp_data[0][0]
@@ -1109,7 +1134,7 @@ def CreateSheetObjFromDict(sheet_data_dict):
 
 	return NTF2_sheet(**dummy_dict)
 
-def CreateRingObjFromDict(ring_data_dict,db=None):
+def CreateRingObjFromDict(ring_data_dict,db=None,bias_TP=False,bias_CH_not_TP=False):
 	'''
 	Creates a ring from input dictionary, that dictionaty can be stored ring_dict.
 	'''
@@ -1118,7 +1143,7 @@ def CreateRingObjFromDict(ring_data_dict,db=None):
 		dummy_dict[i] = ring_data_dict[i]
 	sheet_obj = CreateSheetObjFromDict(ring_data_dict['sheet_dict'])
 
-	return RingConnection(sheet_obj,**dummy_dict,db=db)
+	return RingConnection(sheet_obj,**dummy_dict,db=db,bias_TP=bias_TP,bias_CH_not_TP=bias_CH_not_TP)
 
 def CreateAllPossibleSheetDicts():
 	all_sheet_types = []
@@ -1708,8 +1733,8 @@ def TP_is_viable(TP_pose, BeNTF2_obj):
 def RingCanBeTP_NTF2(ring_pose,ring_obj):
 	mouth_size = Get_HP_longArm_dist(ring_pose, ring_obj)
 	dist = Get_E5Bulge_longArm_dist(ring_pose, ring_obj)
-	if ( mouth_size < 13.0 ) or ( mouth_size > 16.0 ) or ( dist < 22 ) :
-			print("This ring has either a mouth that is too wide or too small, reverting to Classic opening")
+	if ( mouth_size < 13.0 ) or ( mouth_size > 16.0 ): #or ( dist < 22 ) :
+			print("This ring has either a mouth that is too wide or too small, reverting to Classic opening with mouth_size = %0.2f"%mouth_size)
 			return False
 	else:
 			return True
@@ -1897,7 +1922,7 @@ def NTF2CanHaveCTermH(BasicNTF2_pose, BasicNTF2_obj=None,ring_obj=None):
 
 	if (E6_C_E5_N > 18.5) or (E6_C_E5_N < 15.0):
 		print("E6_C_E5_N: %0.2f"%E6_C_E5_N)
-		print("The mouth is too small or too big for a C-term helix")
+		print("The mouth is too small or too big for a C-term helix with E6_C_E5_N = %0.2f"%E6_C_E5_N)
 		return False
 	else:
 		return True

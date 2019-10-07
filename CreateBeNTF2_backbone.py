@@ -432,7 +432,7 @@ if __name__ == "__main__":
 		ring_obj = "dummy"
 		for Ring in AllProcessedRecomendations:
 			ring_obj = Ring
-			success = AssembleRing(POSE,Ring,ring_trials=25,\
+			success = AssembleRing(POSE,Ring,ring_trials=10,\
 	                              prefix=prefix,trial=trial,db=db,options=options)
 			if not success: continue
 			break

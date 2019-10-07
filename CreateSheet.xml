@@ -89,12 +89,15 @@
                         bb_dihedral_tolerance="3.14" dist="4.7" dist_tolerance="1.0" weight="1.0" />
 			<FileConstraintGenerator name="sheet_curve_in" filename="%%cst_file%%" />
 		</AddConstraints>
-		<MinMover name="cart_min_mover" scorefxn="min_cart" type="lbfgs_armijo_nonmonotone" tolerance="0.00001" max_iter="10000" chi="0" bb="1" bondangle="0" bondlength="0" cartesian="1"/>
+		<SheetCstGenerator name="sheet_new1" blueprint="%%bp%%" flat_bottom_constraints="False" angle_tolerance="0.9" cacb_dihedral_tolerance="3.14"
+                        bb_dihedral_tolerance="3.14" dist="4.7" dist_tolerance="10.0" weight="1.0"/> <!-- angle_tolerance="0.9" cacb_dihedral_tolerance="3.14" bb_dihedral_tolerance="3.14" -->
+		<MinMover name="cart_min_mover" scorefxn="min_cart" type="lbfgs_armijo_nonmonotone" tolerance="0.000001" max_iter="100000" chi="0" bb="1"
+			  bondangle="0" bondlength="0" cartesian="1"/>
 		<!--MinMover name="cart_min_mover" scorefxn="min_cart" type="lbfgs_armijo_nonmonotone" tolerance="0.00001" max_iter="10000" chi="0" bb="1" bondangle="0" bondlength="0" cartesian="False"/-->
 		<RemoveConstraints name="rm_build_csts" constraint_generators="sheet_curve_in,sheet_csts" />
 		<RemoveConstraints name="rm_curve_csts" constraint_generators="sheet_curve" />
 		<SetSecStructEnergies name="set_ssene1" scorefxn="CENTROID" />
-		<BluePrintBDR name="bdr" blueprint="%%bp%%" use_abego_bias="True" use_sequence_bias="False" scorefxn="CENTROID" constraint_file="%%cst_file%%" />
+		<BluePrintBDR name="bdr" blueprint="%%bp%%" use_abego_bias="True" use_sequence_bias="False" scorefxn="CENTROID" constraint_generators="sheet_new1" constraint_file="%%cst_file%%" />
 		<ParsedProtocol name="movers">
                         <Add mover="rm_csts"/>
                         <Add mover="bdr" />
@@ -104,6 +107,7 @@
                         <Add mover="rm_build_csts" />
                         <Add mover="rm_curve_csts"/>
                         <Add mover="fa"/>
+			<!--Add mover="init"/-->
                         <Add mover="design_loops_s1"/>
                         <Add mover="cen"/>
                         <Add mover="build_csts"/>
@@ -126,6 +130,7 @@
                         <Add mover="rm_build_csts" />
                         <Add mover="rm_curve_csts"/>
 			<Add mover="fa"/>
+			<!--Add mover="after_min"/-->
                 </ParsedProtocol>
 		<LoopOver name="loop_over_bdr" mover_name="movers" filter_name="all_filters" iterations="%%sheet_attempts%%" drift="False" ms_whenfail="FAIL_DO_NOT_RETRY" />
 	</MOVERS>

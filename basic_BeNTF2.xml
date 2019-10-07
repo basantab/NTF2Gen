@@ -73,6 +73,7 @@
         </CompoundStatement>
     </FILTERS>
     <MOVERS>
+	<DumpPdb name="after_min" fname="after_min_Nterm" tag_time="True"/>
 	<SwitchResidueTypeSetMover name="cen" set="centroid"/>
         <PackRotamersMover name="design_loops_s1" scorefxn="talaris" task_operations="repack_s1,no_pro,design_loops_and_flanking_s1"/>
         <MakePolyX name="polyALA" aa="ALA" />
@@ -85,7 +86,7 @@
 		<FileConstraintGenerator name="cst" filename="%%all_cst_file%%" />
     	</AddConstraints>
         <!--TaskAwareMinMover name="cart_min_mover" scorefxn="min_cart" type="lbfgs_armijo_nonmonotone" tolerance="0.00001" max_iter="10000" chi="0" bb="1" bondangle="0" bondlength="0" cartesian="1" task_operations="KEEPFIXED" /-->
-	<TaskAwareMinMover name="cart_min_mover" scorefxn="min_cart" type="lbfgs_armijo_nonmonotone" tolerance="0.00001" max_iter="10000" chi="0" bb="1" bondangle="0" bondlength="0" cartesian="False" task_operations="KEEPFIXED" />
+	<TaskAwareMinMover name="cart_min_mover" scorefxn="min_cart" type="lbfgs_armijo_nonmonotone" tolerance="0.000001" max_iter="100000" chi="0" bb="1" bondangle="0" bondlength="0" cartesian="False" task_operations="KEEPFIXED" />
         <RemoveConstraints name="rm_build_csts" constraint_generators="cst" />
 	<SheetCstGenerator name="sheet_new1" blueprint="%%bp%%" />
         <SetSecStructEnergies name="set_ssene1" scorefxn="CENTROID" />
