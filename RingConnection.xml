@@ -4,7 +4,7 @@
                 <Reweight scoretype="rg" weight="0.0" />
 		<Reweight scoretype="hbond_lr_bb" weight="1.75" />
                 <Reweight scoretype="hbond_sr_bb" weight="1.0" />
-                <Reweight scoretype="atom_pair_constraint" weight="1.0" />
+                <Reweight scoretype="atom_pair_constraint" weight="0.1" />
                 <Reweight scoretype="angle_constraint" weight="1.0" />
                 <Reweight scoretype="dihedral_constraint" weight="0.1" />
                 <Reweight scoretype="omega" weight="1.5" />
@@ -89,6 +89,9 @@
 	</CompoundStatement>
     </FILTERS>
     <MOVERS>
+	<DumpPdb name="init" fname="init_Ring" tag_time="True"/>
+        <DumpPdb name="after_min" fname="after_min_Ring" tag_time="True"/>
+        <DumpPdb name="after_hyb" fname="after_hyb_Ring" tag_time="True"/>
 	<Dssp name="DSSP" reduced_IG_as_L="0" />
 	<SwitchResidueTypeSetMover name="cen" set="centroid"/>
         <PackRotamersMover name="design_loops_s1" scorefxn="talaris" task_operations="repack_s1,no_pro,design_loops_and_flanking_s1"/>
@@ -110,18 +113,22 @@
                         tolerance="0.00001" max_iter="10000" chi="0" bb="1" bondangle="0"
                         bondlength="0" cartesian="1" task_operations="KEEPFIXED" /-->
         <TaskAwareMinMover name="cart_min_mover" scorefxn="min_cart" type="lbfgs_armijo_nonmonotone"
-			tolerance="0.00001" max_iter="10000" chi="0" bb="1" cartesian="True" task_operations="KEEPFIXED" />
+			tolerance="0.001" max_iter="1000" chi="0" bb="1" cartesian="True" task_operations="KEEPFIXED" />
+	<MinMover name="cart_min_mover_all" scorefxn="min_cart" type="lbfgs_armijo_nonmonotone"
+                        tolerance="0.000001" max_iter="100000" chi="0" bb="1" cartesian="True"/>
         <RemoveConstraints name="rm_build_csts" constraint_generators="sheet_csts,cst" />
-	<SheetCstGenerator name="sheet_new1" blueprint="%%bp%%" />
+	<SheetCstGenerator name="sheet_new1" blueprint="%%bp%%" flat_bottom_constraints="False" angle_tolerance="0.9" cacb_dihedral_tolerance="3.14"
+                        bb_dihedral_tolerance="3.14" dist="4.7" dist_tolerance="10.0" weight="1.0"/>
         <SetSecStructEnergies name="set_ssene1" scorefxn="CENTROID" />
 	<ClearConstraintsMover name="RM_ALL_CST" />
 	<!--BluePrintBDR name="bdr1" scorefxn="SFXN1" constraint_generators="sheet_new1" blueprint="%%bp%%" /-->
-	<BluePrintBDR name="bdr1" scorefxn="CENTROID" use_abego_bias="True" blueprint="%%bp%%" constraint_file="%%all_cst_file%%" />
+	<BluePrintBDR name="bdr1" scorefxn="CENTROID" use_abego_bias="True" use_sequence_bias="False" constraint_generators="sheet_new1"  blueprint="%%bp%%" constraint_file="%%all_cst_file%%" />
 	<ParsedProtocol name="combined_movers" >
                 <Add mover_name="rm_build_csts" />
 		<Add mover_name="RM_ALL_CST"/>
     		<Add mover_name="bdr1"/>
     		<Add mover_name="fa"/>
+		<!--Add mover="init"/-->
 		<Add mover_name="RM_ALL_CST"/>
 		<Add mover_name="design_loops_s1"/>
 	        <Add mover_name="cen"/>
@@ -150,8 +157,14 @@
 		
                 <Add mover_name="rm_build_csts" />
 		<Add mover_name="RM_ALL_CST"/>
+		<!--Add mover="after_hyb"/-->
+		<Add mover_name="build_csts"/>
+		<Add mover_name="cart_min_mover_all" />
+		<Add mover_name="rm_build_csts" />
+                <Add mover_name="RM_ALL_CST"/>
         	<Add mover_name="fa"/>
         	<Add mover_name="polyALA"/>
+		<!--Add mover="after_min"/-->
 	</ParsedProtocol>
 	<LoopOver name="make_ring_connection" mover_name="combined_movers" filter_name="combined_filters"
 		iterations="%%ring_attempts%%" drift="False" ms_whenfail="FAIL_DO_NOT_RETRY" />
