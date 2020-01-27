@@ -278,7 +278,7 @@ def DesignStep(POSE,NTF2_obj,ssstring,NTF2_dict,step=None):
 	#replaces.append('resfile=./%s.resfile'%(args.input_pdb.split('/')[-1]))
 	replaces.append('aa_comp=%s/BeNTF2seq/additional_files/general2.comp'%db)
 	#xmlfile = '%s/BeNTF2seq/NonBinding/DesignStage1.xml'%db
-	xmlfile = '../new_xml_test1.xml'
+	xmlfile = './new_xml_test1.xml'
 	#NTF2_obj.write_blueprint('./blueprint')
 	info = POSE.pdb_info()
 
