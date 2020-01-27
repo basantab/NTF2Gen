@@ -1,0 +1,150 @@
+<ROSETTASCRIPTS>
+    <SCOREFXNS>
+	<ScoreFunction name="DESIGN1" weights="beta_genpot" >
+  		<Reweight scoretype="res_type_constraint" weight="1.0" />
+		<Reweight scoretype="aa_composition" weight="1.0" />
+      		<Reweight scoretype="netcharge" weight="1.0" />
+		<!-- Use -holes:dalphaball /home/basantab/Rosetta/main/source/external/DAlpahBall/DAlphaBall.gcc -->
+                <Reweight scoretype="approximate_buried_unsat_penalty" weight="5.0" />
+                <Set approximate_buried_unsat_penalty_hbond_energy_threshold="-0.25" />
+                <Set approximate_buried_unsat_penalty_burial_atomic_depth="4.0" />
+                <!-- Set this to false if you don't know where you might want prolines -->
+                <Set approximate_buried_unsat_penalty_assume_const_backbone="false" />
+	</ScoreFunction>
+	<ScoreFunction name="RELAX" weights="beta_genpot" >
+		<Reweight scoretype="atom_pair_constraint" weight="1.0"/>
+      		<Reweight scoretype="coordinate_constraint" weight="1.0"/>
+      		<Reweight scoretype="angle_constraint" weight="1.0"/>
+      		<Reweight scoretype="dihedral_constraint" weight="1.0"/>
+      		<Reweight scoretype="cart_bonded" weight="1.2"/>
+      		<Reweight scoretype="pro_close" weight="0.0"/>
+		<Reweight scoretype="approximate_buried_unsat_penalty" weight="5.0" />
+                <Set approximate_buried_unsat_penalty_hbond_energy_threshold="-0.25" />
+                <Set approximate_buried_unsat_penalty_burial_atomic_depth="4.0" />
+                <!-- Set this to false if you don't know where you might want prolines -->
+                <Set approximate_buried_unsat_penalty_assume_const_backbone="true" />
+        </ScoreFunction>
+	<ScoreFunction name="OUTPUT" weights="beta_genpot_cart" />
+	<!-- Use with: -indexed_structure_store:fragment_store /home/drhicks1/DB/hdf5/ss_grouped_vall_all.h5 -->
+    </SCOREFXNS>
+    <RESIDUE_SELECTORS>
+	<ResiduePDBInfoHasLabel name="pocket" property="Pckt"/>
+	<ResiduePDBInfoHasLabel name="gly_resc_main" property="GRG"/>
+	<ResiduePDBInfoHasLabel name="gly_sec_resc" property="GRG_sec"/>
+	<Or name="gly_resc" selectors="gly_resc_main,gly_sec_resc"/>
+	<ResiduePDBInfoHasLabel name="helix1" property="H1pos"/>
+    	<Not name="not_helix1" selector="helix1"/>
+    	<ResiduePDBInfoHasLabel name="helix4" property="H4pos"/>
+    	<ResiduePDBInfoHasLabel name="helix3" property="H3"/>
+    	<Not name="not_helix3" selector="helix3"/>
+	<Not name="not_gly_resc" selector="gly_resc" />
+	<SecondaryStructure name="helices" ss="H" pose_secstruct="%%SS%%" />
+    	<SecondaryStructure name="not_loops" ss="EH" pose_secstruct="%%SS%%" />
+    	<SecondaryStructure name="loops" ss="L" pose_secstruct="%%SS%%" />
+    	<SecondaryStructure name="strands" ss="E" pose_secstruct="%%SS%%" />
+    	<SecondaryStructure name="all" ss="ELH" pose_secstruct="%%SS%%" />
+	<Layer name="core_SCN" select_core="True" use_sidechain_neighbors="True" surface_cutoff="1.0" />
+	<!--Default: core_cutoff=(5.2 &Real), surface_cutoff=(2.0 &Real)  -->
+    	<Layer name="boundary_SCN" select_boundary="True" use_sidechain_neighbors="True" surface_cutoff="1.0" />
+    	<Layer name="surface_SCN" select_surface="True" use_sidechain_neighbors="True" surface_cutoff="1.0" />
+	<ResidueName name="nala_hyphob" residue_name3="PHE,ILE,LEU,MET,VAL,TRP,TYR" />
+        <Not name="not_nala_hyphob" selector="nala_hyphob" />
+    </RESIDUE_SELECTORS>
+    <TASKOPERATIONS>
+	<OperateOnResidueSubset name="no_cys" selector="all" > <RestrictAbsentCanonicalAASRLT aas="ADEFGHIKLMNPQRSTVWY"/>  </OperateOnResidueSubset>
+	<OperateOnResidueSubset name="resque" selector="gly_resc" > <RestrictAbsentCanonicalAASRLT aas="G"/>  </OperateOnResidueSubset>
+	<OperateOnResidueSubset name="repack_H1" selector="helix1" > <RestrictToRepackingRLT/> </OperateOnResidueSubset>
+    	<OperateOnResidueSubset name="not_repack_H1" selector="not_helix1" > <PreventRepackingRLT/> </OperateOnResidueSubset>
+    	<OperateOnResidueSubset name="repack_H3" selector="helix3" > <RestrictToRepackingRLT/> </OperateOnResidueSubset>
+    	<OperateOnResidueSubset name="not_repack_H3" selector="not_helix3" > <PreventRepackingRLT/> </OperateOnResidueSubset>
+	<OperateOnResidueSubset name="not_gly_resc" selector="not_gly_resc" > <PreventRepackingRLT/> </OperateOnResidueSubset>
+	<ConsensusLoopDesign name="consensus_loop" include_adjacent_residues="%%include_adjacent_residues%%" enrichment_threshold="%%enrichment_threshold%%" secstruct="%%SS%%" />
+	<LimitAromaChi2 name="LimitAromaChi2" include_trp="False" />
+    	<IncludeCurrent name="ic" />
+    	<ExtraRotamersGeneric name="ex" ex1="True" ex2="True" ex1_sample_level="1" ex2_sample_level="1" extrachi_cutoff="18"/>
+	<PruneBuriedUnsats name="prune_unsats" allow_even_trades="false"
+		atomic_depth_probe_radius="2.3" atomic_depth_resolution="0.5"
+		atomic_depth_cutoff="4" minimum_hbond_energy="-0.25" />
+	<SeqprofConsensus name="PSSM_allowed" min_aa_probability="%%min_aa_probability%%" filename="%%pssm_file%%"
+		probability_larger_than_current="0" ignore_pose_profile_length_mismatch="0"
+		convert_scores_to_probabilities="0"  keep_native="0"/>
+	<OperateOnResidueSubset name="repack_nala_hyphob" selector="nala_hyphob" >
+                <RestrictToRepackingRLT/>
+        </OperateOnResidueSubset>
+        <OperateOnResidueSubset name="fix_not_nala_hyphob" selector="not_nala_hyphob" >
+                <PreventRepackingRLT/>
+        </OperateOnResidueSubset>
+    </TASKOPERATIONS>
+    <SIMPLE_METRICS>
+    </SIMPLE_METRICS>
+    <FILTERS>
+	<AverageDegree name="avdeg_H1" confidence="0.0" task_operations="repack_H1,not_repack_H1"/>
+    	<AverageDegree name="avdeg" confidence="0.0" />
+    	<AverageDegree name="avdeg_H3" confidence="0.0" task_operations="repack_H3,not_repack_H3"/>
+	<SSPrediction name="sspred" confidence="0" cmd="%%sspredexec%%" use_probability="True"
+		mismatch_probability="True" use_svm="0" threshold="0.25" secstruct="%%SS%%"/>
+	<ScoreType name="OUTPUT_score" scorefxn="OUTPUT" score_type="total_score"
+               	threshold="0.0" confidence="0" />
+    	<ResidueCount name="nres" confidence="0" />
+	<CalculatorFilter name="score_res" confidence="0" equation="SCORE/NRES" threshold="-2.10">
+      		<Var name="SCORE" filter_name="OUTPUT_score" />
+      		<Var name="NRES" filter_name="nres" />
+    	</CalculatorFilter>
+	<Geometry name="geom" count_bad_residues="true" confidence="0"/>
+	<TaskAwareScoreType name="rama_res" scorefxn="OUTPUT" score_type="rama_prepro" mode="individual" confidence="0" threshold="2.0" />
+	<BuriedSurfaceArea name="BuriedHyphobSA" select_only_FAMILYVW="True" confidence="0.0" />
+        <CalculatorFilter name="BuriedHyphobSAperRes" equation="HSA/RES" threshold="0" confidence="0.0">
+                <Var name="HSA" filter="BuriedHyphobSA" />
+                <Var name="RES" filter="nres"/>
+        </CalculatorFilter>
+	<ResidueCount name="gly_resc_nres" confidence="0" residue_selector="gly_resc"/>
+	<TaskAwareScoreType name="gly_resc_score" score_type="total_score" mode="total" task_operations="not_gly_resc" scorefxn="OUTPUT" confidence="0.0" />
+	<ResidueCount name="non_ala_hyphob_percent" confidence="0.0" residue_types="PHE,ILE,LEU,MET,VAL,TRP,TYR" count_as_percentage="True"/>
+	<AtomicContactCount name="hphob_sc_contacts" partition="none" non_local="true"
+                distance="4.3" task_operations="fix_not_nala_hyphob" res_contact="true" count_SD_NE1="true" confidence="0"/>
+	<BuriedUnsatHbonds name="buns_nosurf_sc" scorefxn="beta" cutoff="99" print_out_info_to_pdb="True" use_hbnet_behavior="False" ignore_surface_res="True"
+        	ignore_bb_heavy_unsats="True"  only_interface="False" confidence="0" use_reporter_behavior="True" report_sc_heavy_atom_unsats="True"/>	
+    </FILTERS>
+    <MOVERS>
+	<AddNetChargeConstraintMover name="netcharge_pocket" filename="%%pocket_charge%%" selector="pocket" />
+	<AddNetChargeConstraintMover name="netcharge_all" filename="%%charge%%"/>
+	<AddCompositionConstraintMover name="all_comp" filename="%%aa_comp%%"/>
+    	<AddCompositionConstraintMover name="pocket_comp" filename="%%pocketcomp%%" selector="pocket" />
+    	<AddCompositionConstraintMover name="core_comp" filename="%%core_comp%%" selector="core_SCN" />
+    	<AddCompositionConstraintMover name="surface_comp" filename="%%surface_comp%%" selector="surface_SCN" />
+	<FavorSequenceProfile name="favor_stable_PSSM" scaling="none" weight="%%PSSM_w%%" pssm="%%pssm_file%%"/>
+	<!--StructProfileMover name="genProfile" outputProfile="true" add_csts_to_pose="1" 
+		consider_topN_frags="%%consider_topN_frags%%" eliminate_background="0" ignore_terminal_residue="1" only_loops="0"
+		burialWt="%%burialWt%%" RMSthreshold="0.6" /-->
+	<FastDesign name="Design" scorefxn="DESIGN1" relaxscript="MonomerDesign2019"
+		    task_operations="LimitAromaChi2,prune_unsats,no_cys,resque,PSSM_allowed,consensus_loop" repeats="2"/>
+	<FastRelax name="Relax_cart" scorefxn="RELAX" task_operations="ic,ex"
+               	bondangle="True" bondlength="True" dualspace="True"
+               	min_type="lbfgs_armijo_nonmonotone" repeats="5"/>	
+	
+    </MOVERS>
+    <PROTOCOLS>
+	<Add mover_name="all_comp"/>
+	<Add mover_name="netcharge_all"/>
+	<Add mover_name="pocket_comp"/>
+	<Add mover_name="core_comp"/>
+	<Add mover_name="surface_comp"/>
+	<Add mover_name="favor_stable_PSSM"/>
+	<Add mover_name="Design"/>
+	<Add mover_name="Relax_cart"/>
+	<Add filter_name="avdeg_H1"/>
+	<Add filter_name="avdeg_H3"/>
+	<Add filter_name="avdeg"/>
+	<Add filter_name="buns_nosurf_sc"/>
+	<Add filter_name="hphob_sc_contacts"/>
+	<Add filter_name="sspred"/>
+	<Add filter_name="score_res"/>
+	<Add filter_name="geom"/>
+    	<Add filter_name="rama_res"/>
+    	<Add filter_name="BuriedHyphobSAperRes" />
+	<Add filter_name="non_ala_hyphob_percent"/>
+	<Add filter_name="gly_resc_score"/>
+    	<Add filter_name="gly_resc_nres"/>
+    </PROTOCOLS>
+    <OUTPUT scorefxn="OUTPUT"/>
+</ROSETTASCRIPTS>
