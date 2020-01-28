@@ -1,0 +1,10 @@
+Started modeling at time 1570751132.4663265
+Cleaned alignment has 6882 entries with  183 positions.
+We will be fitting  (6882, 3660)  weights for 1 body terms
+Scorefile has 6882 scores
+(3660,)
+(6882, 3660)
+(6882,)
+(6882,)
+(6882,)
+TF CV 0.001 0.1291549665014884 0.01 MGM 0.1477530649741158,0.1021148760820604,0.1286491381681217,0.13593208090343892,0.10341834218996038
