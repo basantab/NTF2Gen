@@ -10,9 +10,9 @@ import pandas as pd
 from Bio import SeqIO
 from optparse import OptionParser
 
-sys.path.append("/home/basantab/NTF2Gen")
-sys.path.append("/home/basantab/fragment_tools")
-sys.path.append("/home/basantab/scripts")
+#sys.path.append("/home/basantab/NTF2Gen")
+#sys.path.append("/home/basantab/fragment_tools")
+#sys.path.append("/home/basantab/scripts")
 
 
 ################################################################################

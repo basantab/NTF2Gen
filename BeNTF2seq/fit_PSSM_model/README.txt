@@ -18,6 +18,6 @@ source activate /net/software/conda/envs/tensorflow; python scripts/train_pssm_T
 
 # To analyse the resulting weights, run analyse_models_TF.ipynb
 
-# To add PSSM to pdbs
-BENJA write how here
+# To design using the PSSMs
+See ../design_with_PSSM/README.md
 
