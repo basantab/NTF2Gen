@@ -20,11 +20,10 @@ generate backbones from a specific set of parameters, use CreateBeNTF2PDBFromDic
 
 The fundamental building blocks of the backbone generation protocol are Rosetta XML protocols
 (included in the repository) that are specialized instances of the BlueprintBDRMover Rosetta fragment
-assembly mover. All checks and filters mentioned in the result section previous to design are
+assembly mover. All backbone quality checks and filters previous to design are
 implemented either in the XML files or the python scripts. The design script is also based on a set of XML
-protocols, one for each of the described stages. The glycine placement in highly curved strand positions
-and the selection of pocket positions are managed by DesignBeNTF2.py.
-Pocket positions are selected by placing a virtual atom in the midpoint between the H3-S3 connection and
+protocols, one for each design stage. The glycine placement in highly curved strand positions
+and the selection of pocket positions are managed by DesignBeNTF2.py (or DesignBeNTF2_test1.py at BeNTF2seq/design_with_PSSM to design using PSSMs). Pocket positions are selected by placing a virtual atom in the midpoint between the H3-S3 connection and
 the S6 bulge, and choosing all positions whose C<sub>α</sub>-C<sub>β</sub> vector is pointing towards the virtual atom (the V<sub>atom</sub>-C<sub>α</sub>-C<sub>β</sub> angle is smaller than 90º), and their C<sub>α</sub> is closer than 8Å.
 
 # Dependencies
