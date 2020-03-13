@@ -1,4 +1,4 @@
-# NTF2Gen: A generative algorithm for full-atom models of proteins belonging to the NTF2-like superfamily.<br/>
+# NTF2Gen: A generative algorithm for full-atom models of proteins belonging to the NTF2-like superfamily<br/>
 <br/>
 
 This NTF2 generative algorithm samples a wide diversity of protein structures by carrying out backbone
@@ -26,3 +26,16 @@ protocols, one for each of the described stages. The glycine placement in highly
 and the selection of pocket positions are managed by DesignBeNTF2.py.
 Pocket positions are selected by placing a virtual atom in the midpoint between the H3-S3 connection and
 the S6 bulge, and choosing all positions whose C<sub>α</sub>-C<sub>β</sub> vector is pointing towards the virtual atom (the V<sub>atom</sub>-C<sub>α</sub>-C<sub>β</sub> angle is smaller than 90º), and their C<sub>α</sub> is closer than 8Å.
+
+# Dependencies
+pyrosetta\*<br/>
+pandas<br/>
+random<br/>
+math<br/>
+numpy<br/>
+glob<br/>
+json<br/>
+<br/>
+\*pyrosetta is free (with a subscription) for academic use: http://www.pyrosetta.org/dow
+
+
