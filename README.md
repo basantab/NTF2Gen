@@ -30,11 +30,18 @@ the S6 bulge, and choosing all positions whose C<sub>α</sub>-C<sub>β</sub> vec
 # Dependencies
 pyrosetta\*<br/>
 pandas<br/>
+h5py<br/>
+pickle<br/>
 random<br/>
 math<br/>
 numpy<br/>
 glob<br/>
 json<br/>
+sys<br/>
+argparse<br/>
+string<br/>
+os<br/>
+copy<br/>
 <br/>
 \*pyrosetta is free (with a subscription) for academic use: http://www.pyrosetta.org/dow
 
