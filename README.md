@@ -1,7 +1,7 @@
-# NTF2Gen: A generative algorithm for full-atom models of proteins belonging to the NTF2-like superfamily<br/>
+# NTF2Gen: An enumerative algorithm for full-atom models of proteins belonging to the NTF2-like superfamily<br/>
 <br/>
 
-This NTF2 generative algorithm samples a wide diversity of protein structures by carrying out backbone
+This algorithm samples a wide diversity of protein structures by carrying out backbone
 sampling at two levels. At the top level, sampling is carried out in the space of high-level
 parameters that define the overall properties of the NTF2 fold: for example, the overall sheet length and
 curvature, the lengths of the helices that complement the sheet, the placement of the pocket opening and
