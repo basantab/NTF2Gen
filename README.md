@@ -1,7 +1,7 @@
 # NTF2Gen: An enumerative algorithm for full-atom models of proteins belonging to the NTF2-like superfamily<br/>
 <br/>
 
-If you find the scripts in this repository useful, please cite https://doi.org/10.1101/2020.03.23.003913.<br/>
+If you find the scripts in this repository useful, please cite https://doi.org/10.1073/pnas.2005412117.<br/>
 <br/>
 
 This algorithm samples a wide diversity of protein structures by carrying out backbone
