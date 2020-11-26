@@ -1,3 +1,9 @@
+To combine and decompress all "final set" designs:
+
+cat final_set.tar.gz.part?? > final_set.tar.gz && tar -xzf final_set.tar.gz
+
+To design NTF2-like proteins using the PSSM:
+
 1) Generate a text file containing the path to all your NTF2 backbones. The PDB files listed must contain the BENTF2DICT line. For an example of this text file see ./pdb.list
 
 2) Generate a FASTA file with the sequences of the PDB files listed in the above file. The FASTA name must coincide with the path listed above. See ./fasta.list as an example.
