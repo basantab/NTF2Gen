@@ -311,7 +311,7 @@ def add_SS_positions(POSE,NTF2_obj):
 if __name__ == "__main__":
 
 	########## Option system: ###########
-	argparser = argparse.ArgumentParser(description='Create a BeNTF2 backbone with a random combination of parameters.')
+	argparser = argparse.ArgumentParser(description='Create a BeNTF2 backbone with a random combination of parameters. To create backbones with a specific set of parameters use CreateNewBeNTF2PDBFromDict.py.')
 	# XMLs
 	argparser.add_argument('-database', type=str,help='Git repo directory contaninig necessary *.xml and *.wts files')
 	# trials
