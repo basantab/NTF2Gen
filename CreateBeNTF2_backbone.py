@@ -311,13 +311,13 @@ def add_SS_positions(POSE,NTF2_obj):
 if __name__ == "__main__":
 
 	########## Option system: ###########
-	argparser = argparse.ArgumentParser(description='Create a BeNTF2 backbone.')
+	argparser = argparse.ArgumentParser(description='Create a BeNTF2 backbone with a random combination of parameters.')
 	# XMLs
-	argparser.add_argument('-database', type=str,help='XML file to use for ring generation, second step')
+	argparser.add_argument('-database', type=str,help='Git repo directory contaninig necessary *.xml and *.wts files')
 	# trials
 	argparser.add_argument('-nstruct', type=int,help='Max number of structures to output. May output less if some of them fail.')
 	argparser.add_argument('-prefix', type=str,help='Prefix to add to output names.')
-	argparser.add_argument('-input_pdb', type=str,help='sheet pdb')
+	#argparser.add_argument('-input_pdb', type=str,help='sheet pdb')
 	#argparser.add_argument('-sheet_dict', type=str,help='sheet dict fname')
 	args = argparser.parse_args()
 
