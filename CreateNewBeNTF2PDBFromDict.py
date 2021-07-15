@@ -85,8 +85,8 @@ def CreateBeNTF2PoseFromDict(BeNTF2dict,POSE,arch_len=None):
 if __name__ == "__main__":
         ########## Option system: ###########
         argparser = argparse.ArgumentParser(description='Create a BeNTF2 backbone.')
-        argparser.add_argument('-database', type=str,help='XML file to use for ring generation, second step')
-        argparser.add_argument('-input_pdb', type=str,help='sheet pdb')
+        argparser.add_argument('-database', type=str,help='Git repo directory contaninig necessary *.xml and *.wts files')
+        argparser.add_argument('-input_pdb', type=str,help='Input PDB file (or just text file) containing a line starting with "BENTF2DICT" followed by a python dictionary json string')
         argparser.add_argument('-nstruct', type=int,help='Max number of structures to output. May output less if some of them fail.')
         argparser.add_argument('-prefix', type=str,help='Prefix to add to output names.')
         args = argparser.parse_args()
