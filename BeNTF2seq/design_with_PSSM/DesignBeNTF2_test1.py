@@ -5,7 +5,7 @@ from BeNTF2seq.BeNTF2resfile import *
 import json
 import sys
 #sys.path.append('/home/basantab/.local/lib/python3.7/site-packages/)
-import h5py
+#import h5py
 import argparse
 import random, string
 import pickle
