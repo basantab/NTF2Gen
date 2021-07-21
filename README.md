@@ -35,4 +35,8 @@ pandas<br/>
 <br/>
 \*pyrosetta is free (with a subscription) for academic use: http://www.pyrosetta.org/dow
 
+# Accessing the pre-generated scaffold library:
+Go to ./BeNTF2seq/design_with_PSSM/final_set<br/>
+and run:<br/>
+<code>cat final_set.tar.gz.part?? > final_set.tar.gz && tar -xzf final_set.tar.gz</code><br/>
 
