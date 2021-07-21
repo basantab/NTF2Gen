@@ -35,8 +35,9 @@ pandas<br/>
 <br/>
 \*pyrosetta is free (with a subscription) for academic use: http://www.pyrosetta.org/dow
 
-# Accessing the pre-generated scaffold library:
-Go to ./BeNTF2seq/design_with_PSSM/final_set<br/>
-and run:<br/>
+# Pre-generated scaffold library:
+As the overarching goal of this work is to expand the set of available protein structures with pockets, we generated a final set of scaffolds that incorporates all of the lessons from this study. Here we present proteins from 1,619 unique parameter combinations with improved stability-related metrics (see SI Appendix, Supplementary Methods and Figs. S33, S34, and S40 for pocket diversity). We have made this set of 32,380 scaffolds (20 models with different sequences per parameter combination) available for general use as starting points for ligand binding and enzyme design.<br/>
+To access them, download this repo and go to ./BeNTF2seq/design_with_PSSM/final_set<br/>
+Then run:<br/>
 <code>cat final_set.tar.gz.part?? > final_set.tar.gz && tar -xzf final_set.tar.gz</code><br/>
 
